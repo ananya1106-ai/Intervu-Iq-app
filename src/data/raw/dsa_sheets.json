@@ -1,0 +1,142 @@
+[
+  {
+    "name": "Apna College DSA Sheet",
+    "creator": "Apna College",
+    "category": "Placement / Interview",
+    "problem_count": "375+",
+    "level": "Beginner-Intermediate",
+    "platform": "Apna College",
+    "url": "https://dsa.apnacollege.in/",
+    "description": "Topic-wise DSA practice for placement preparation"
+  },
+  {
+    "name": "GeeksforGeeks SDE Sheet",
+    "creator": "GeeksforGeeks",
+    "category": "SDE Interview",
+    "problem_count": "250 DSA + interview sections",
+    "level": "Beginner-Advanced",
+    "platform": "GeeksforGeeks",
+    "url": "https://www.geeksforgeeks.org/dsa/sde-sheet-a-complete-guide-for-sde-preparation/",
+    "description": "DSA plus interview-focused CS subjects, puzzles, system design and company preparation"
+  },
+  {
+    "name": "Striver A2Z DSA Sheet",
+    "creator": "Striver / takeUforward",
+    "category": "Complete DSA Roadmap",
+    "problem_count": "474",
+    "level": "Beginner-Advanced",
+    "platform": "takeUforward",
+    "url": "https://takeuforward.org/dsa/strivers-a2z-sheet-learn-dsa-a-to-z",
+    "description": "Structured DSA roadmap from basics to advanced"
+  },
+  {
+    "name": "Striver SDE Sheet",
+    "creator": "Striver / takeUforward",
+    "category": "Interview Preparation",
+    "problem_count": "Popular interview set",
+    "level": "Intermediate-Advanced",
+    "platform": "takeUforward",
+    "url": "https://takeuforward.org/interviews/strivers-sde-sheet-top-coding-interview-problems/",
+    "description": "Curated software engineering interview problems"
+  },
+  {
+    "name": "Striver 79 Sheet",
+    "creator": "Striver / takeUforward",
+    "category": "Last Minute Preparation",
+    "problem_count": "79",
+    "level": "Intermediate",
+    "platform": "takeUforward",
+    "url": "https://takeuforward.org/",
+    "description": "Compact last-minute interview preparation sheet"
+  },
+  {
+    "name": "NeetCode 150",
+    "creator": "NeetCode",
+    "category": "Interview Preparation",
+    "problem_count": "150",
+    "level": "Beginner-Advanced",
+    "platform": "NeetCode",
+    "url": "https://neetcode.io/practice",
+    "description": "Pattern-based curated interview problem list"
+  },
+  {
+    "name": "Blind 75",
+    "creator": "Blind / NeetCode",
+    "category": "Interview Preparation",
+    "problem_count": "75",
+    "level": "Intermediate",
+    "platform": "NeetCode",
+    "url": "https://neetcode.io/practice",
+    "description": "Classic high-frequency interview problem list"
+  },
+  {
+    "name": "LeetCode 75",
+    "creator": "LeetCode",
+    "category": "Interview Preparation",
+    "problem_count": "75",
+    "level": "Beginner-Intermediate",
+    "platform": "LeetCode",
+    "url": "https://leetcode.com/studyplan/leetcode-75/",
+    "description": "75 essential and trending interview problems"
+  },
+  {
+    "name": "Love Babbar DSA Cracker Sheet",
+    "creator": "Love Babbar",
+    "category": "Complete DSA Practice",
+    "problem_count": "450",
+    "level": "Beginner-Advanced",
+    "platform": "GeeksforGeeks",
+    "url": "https://www.geeksforgeeks.org/gfg-academy/geeksforgeeks-master-sheet-list-of-all-cheat-sheets/",
+    "description": "Widely used 450-question DSA practice sheet"
+  },
+  {
+    "name": "Arsh Goyal DSA Sheet",
+    "creator": "Arsh Goyal",
+    "category": "Interview Preparation",
+    "problem_count": "280+",
+    "level": "Beginner-Advanced",
+    "platform": "Arsh Goyal",
+    "url": "https://www.youtube.com/watch?v=GqnD9YKrnTM",
+    "description": "Structured/gamified interview DSA preparation"
+  },
+  {
+    "name": "Siddharth Singh 450 DSA Sheet",
+    "creator": "Siddharth Singh",
+    "category": "Complete DSA Practice",
+    "problem_count": "450",
+    "level": "Beginner-Advanced",
+    "platform": "Siddharth Singh",
+    "url": "https://www.youtube.com/watch?v=A69Hwva4qKk",
+    "description": "Day-wise 450-question DSA preparation"
+  },
+  {
+    "name": "Fraz 250 DSA Sheet",
+    "creator": "Fraz",
+    "category": "Interview Preparation",
+    "problem_count": "250",
+    "level": "Intermediate",
+    "platform": "Google Sheets",
+    "url": "https://docs.google.com/spreadsheets/u/0/d/1-wKcV99KtO91dXdPkwmXGTdtyxAfk1mbPXQg81R9sFE/htmlview",
+    "description": "Community-listed 250-question DSA sheet"
+  },
+  {
+    "name": "Apna College 375 Problems Sheet",
+    "creator": "Apna College",
+    "category": "Placement / Interview",
+    "problem_count": "375",
+    "level": "Beginner-Intermediate",
+    "platform": "Google Sheets",
+    "url": "https://docs.google.com/spreadsheets/u/0/d/1hXserPuxVoWMG9Hs7y8wVdRCJTcj3xMBAEYUOXQ5Xag/htmlview",
+    "description": "Community-listed 375-problem reference"
+  },
+  {
+    "name": "Siddharth Singh 450 Google Sheet",
+    "creator": "Siddharth Singh",
+    "category": "DSA Practice",
+    "problem_count": "450",
+    "level": "Beginner-Advanced",
+    "platform": "Google Sheets",
+    "url": "https://docs.google.com/spreadsheets/u/0/d/11tevcTIBQsIvRKIZLbSzCeN4mCO6wD4O5meyrAIfSXw/htmlview",
+    "description": "Community-listed Google Sheets reference"
+  }
+]

@@ -1,0 +1,62 @@
+[
+  {
+    "topic": "Arrays",
+    "description": "Array fundamentals, prefix/suffix techniques and common interview problems"
+  },
+  {
+    "topic": "Strings",
+    "description": "String manipulation and pattern-based problems"
+  },
+  {
+    "topic": "Linked List",
+    "description": "Linked list operations and interview problems"
+  },
+  {
+    "topic": "Stack & Queue",
+    "description": "Stack, queue and monotonic stack concepts"
+  },
+  {
+    "topic": "Binary Search",
+    "description": "Binary search and search-on-answer"
+  },
+  {
+    "topic": "Trees & BST",
+    "description": "Binary trees, BST, traversals and LCA"
+  },
+  {
+    "topic": "Graphs",
+    "description": "BFS, DFS, shortest path, MST and topological sort"
+  },
+  {
+    "topic": "Recursion & Backtracking",
+    "description": "Recursive thinking, subsets, permutations and N-Queens"
+  },
+  {
+    "topic": "Dynamic Programming",
+    "description": "1D/2D DP and interview patterns"
+  },
+  {
+    "topic": "Greedy",
+    "description": "Greedy strategy and interval problems"
+  },
+  {
+    "topic": "Heap",
+    "description": "Priority queues and heap problems"
+  },
+  {
+    "topic": "Trie",
+    "description": "Prefix tree and string-search problems"
+  },
+  {
+    "topic": "Sliding Window",
+    "description": "Fixed and variable-size sliding window"
+  },
+  {
+    "topic": "Two Pointer",
+    "description": "Two-pointer patterns"
+  },
+  {
+    "topic": "Bit Manipulation",
+    "description": "Bitwise techniques and tricks"
+  }
+]

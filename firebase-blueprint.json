@@ -1,0 +1,92 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "User Profile",
+      "description": "User profile, settings, resume metadata, and ATS analysis.",
+      "type": "object",
+      "properties": {
+        "fullName": { "type": "string", "maxLength": 100 },
+        "email": { "type": "string", "format": "email", "maxLength": 200 },
+        "targetRole": { "type": "string", "maxLength": 100 },
+        "onboardingCompleted": { "type": "boolean" },
+        "profilePhotoUrl": { "type": "string", "maxLength": 1000 },
+        "solvedDsaQuestions": { "type": "array", "items": { "type": "string" } },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["email"]
+    },
+    "InterviewSession": {
+      "title": "Mock Interview Session",
+      "description": "Mock interview session, questions, speech analysis, and performance evaluation.",
+      "type": "object",
+      "properties": {
+        "role": { "type": "string", "maxLength": 100 },
+        "interviewType": { "type": "string", "enum": ["HR", "Technical", "Behavioral", "Mixed"] },
+        "difficulty": { "type": "string", "enum": ["Easy", "Medium", "Hard"] },
+        "questions": { "type": "array" },
+        "answers": { "type": "array" },
+        "feedback": { "type": "object" },
+        "expressionSummary": { "type": "object" },
+        "speechAnalysis": { "type": "object" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["interviewType", "difficulty"]
+    },
+    "UserRoadmap": {
+      "title": "Personalized Learning Roadmap",
+      "description": "Personalized career readiness milestone roadmap adapted to ATS score and interview feedback.",
+      "type": "object",
+      "properties": {
+        "targetRole": { "type": "string", "maxLength": 100 },
+        "milestones": { "type": "array" },
+        "overallProgress": { "type": "number" },
+        "completedCount": { "type": "number" },
+        "totalMilestones": { "type": "number" }
+      },
+      "required": ["targetRole", "milestones"]
+    }
+  },
+  "firestore": {
+    "/users/{uid}": {
+      "schema": "UserProfile",
+      "description": "Stores user account profile, resume metadata, and ATS analysis results."
+    },
+    "/users/{uid}/interviews/{interviewId}": {
+      "schema": "InterviewSession",
+      "description": "Stores user mock interview logs and evaluations."
+    },
+    "/users/{uid}/roadmap/{roadmapId}": {
+      "schema": "UserRoadmap",
+      "description": "Stores personalized user roadmap milestones."
+    },
+    "/questions/{questionId}": {
+      "schema": { "$ref": "DSAQuestion" },
+      "description": "Public catalog of DSA practice questions."
+    },
+    "/companies/{companyId}": {
+      "schema": { "$ref": "DSACompany" },
+      "description": "Public catalog of tech companies and question distributions."
+    },
+    "/dsaTopics/{topicId}": {
+      "schema": { "$ref": "DSATopic" },
+      "description": "Public catalog of DSA topics."
+    },
+    "/dsaSheets/{sheetId}": {
+      "schema": { "$ref": "DSASheet" },
+      "description": "Public catalog of curated DSA sheets."
+    },
+    "/resources/{resourceId}": {
+      "schema": { "$ref": "DSAResource" },
+      "description": "Public catalog of learning resources."
+    },
+    "/videoTopics/{topicId}": {
+      "schema": { "$ref": "VideoTopic" },
+      "description": "Public catalog of video learning topics."
+    },
+    "/videoResources/{resourceId}": {
+      "schema": { "$ref": "VideoResource" },
+      "description": "Public catalog of video resources."
+    }
+  }
+}

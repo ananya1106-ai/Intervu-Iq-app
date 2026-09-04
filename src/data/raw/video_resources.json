@@ -1,0 +1,82 @@
+[
+  {
+    "name": "Striver A2Z DSA Course",
+    "creator": "take U forward (Striver)",
+    "category": "Complete DSA",
+    "level": "Beginner to Advanced",
+    "language": "English",
+    "type": "YouTube Playlist",
+    "url": "https://www.youtube.com/playlist?list=PLgUwDviBIf0oF6QL8m22w1hIDC1vJ_BHz",
+    "description": "Structured A2Z DSA course covering fundamentals through advanced interview topics."
+  },
+  {
+    "name": "Apna College Java + DSA Course for Placement",
+    "creator": "Apna College",
+    "category": "Placement DSA",
+    "level": "Beginner to Intermediate",
+    "language": "Hindi / Hinglish",
+    "type": "YouTube Playlist",
+    "url": "https://www.youtube.com/playlist?list=PLfqMhTWNBTe3LtFWcvwpqTkUSlB32kJop",
+    "description": "Java and DSA preparation course aimed at placement preparation."
+  },
+  {
+    "name": "CodeHelp DSA Complete Series",
+    "creator": "CodeHelp by Babbar",
+    "category": "Complete DSA",
+    "level": "Beginner to Advanced",
+    "language": "Hindi / Hinglish",
+    "type": "YouTube Channel / Playlist Series",
+    "url": "https://www.youtube.com/@CodeHelp",
+    "description": "CodeHelp's DSA series and placement-oriented programming resources."
+  },
+  {
+    "name": "Kunal Kushwaha Java + DSA + Interview Preparation",
+    "creator": "Kunal Kushwaha",
+    "category": "DSA + Interview",
+    "level": "Beginner to Advanced",
+    "language": "English / Hinglish",
+    "type": "YouTube Course",
+    "url": "https://www.youtube.com/watch?v=rZ41y93P2Qo",
+    "description": "A complete Java, DSA and interview-preparation course designed to take learners from basics to advanced."
+  },
+  {
+    "name": "Abdul Bari Algorithms",
+    "creator": "Abdul Bari",
+    "category": "Algorithms",
+    "level": "Intermediate to Advanced",
+    "language": "English",
+    "type": "YouTube Playlist",
+    "url": "https://www.youtube.com/playlist?list=PLDN4rrl48XKpZkf03iYFl-O29szjTrs_O",
+    "description": "In-depth algorithms course covering analysis, recursion, sorting, graphs and other core algorithmic concepts."
+  },
+  {
+    "name": "AlgoPrep DSA Foundation Course",
+    "creator": "AlgoPrep",
+    "category": "DSA Foundation",
+    "level": "Beginner to Intermediate",
+    "language": "Hindi / Hinglish",
+    "type": "YouTube Playlist",
+    "url": "https://www.youtube.com/playlist?list=PLmM0bg5v6gKFMhJ9vn2MwxVm2TUNU42VU",
+    "description": "Foundation-focused DSA playlist for building core concepts and problem-solving skills."
+  },
+  {
+    "name": "Aditya Verma Dynamic Programming Series",
+    "creator": "Aditya Verma",
+    "category": "Dynamic Programming",
+    "level": "Intermediate to Advanced",
+    "language": "Hindi / Hinglish",
+    "type": "YouTube Series",
+    "url": "https://www.youtube.com/watch?v=nqowUJzG-iM",
+    "description": "Popular DP-focused series starting from recursion/optimization concepts and progressing through classic DP patterns."
+  },
+  {
+    "name": "NeetCode DSA / NeetCode 150",
+    "creator": "NeetCode",
+    "category": "Interview DSA",
+    "level": "Beginner to Advanced",
+    "language": "English",
+    "type": "YouTube Channel / Playlist Series",
+    "url": "https://www.youtube.com/@NeetCode",
+    "description": "Interview-oriented DSA explanations organized around common problem-solving patterns."
+  }
+]

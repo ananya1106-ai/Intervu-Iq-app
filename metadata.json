@@ -1,0 +1,6 @@
+{
+  "name": "INTERVU IQ",
+  "description": "An elite AI Interview Preparation Platform featuring mock interviews, resume analysis, facial expression tracking, speech coaching, and personalized learning roadmaps.",
+  "requestFramePermissions": ["camera", "microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

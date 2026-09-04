@@ -1,0 +1,78 @@
+[
+  {
+    "topic": "Arrays",
+    "description": "Array problems and techniques"
+  },
+  {
+    "topic": "Strings",
+    "description": "String manipulation and patterns"
+  },
+  {
+    "topic": "Hashing",
+    "description": "Hash maps, sets and frequency"
+  },
+  {
+    "topic": "Linked List",
+    "description": "Singly and doubly linked lists"
+  },
+  {
+    "topic": "Stack & Queue",
+    "description": "Stacks, queues and monotonic stack"
+  },
+  {
+    "topic": "Binary Search",
+    "description": "Binary search and search on answer"
+  },
+  {
+    "topic": "Trees",
+    "description": "Binary tree traversals and problems"
+  },
+  {
+    "topic": "BST",
+    "description": "Binary search tree problems"
+  },
+  {
+    "topic": "Heap",
+    "description": "Priority queue and heap"
+  },
+  {
+    "topic": "Graphs",
+    "description": "BFS, DFS, shortest path, MST, topological sort"
+  },
+  {
+    "topic": "Recursion",
+    "description": "Recursive problem solving"
+  },
+  {
+    "topic": "Backtracking",
+    "description": "Subsets, permutations, N-Queens"
+  },
+  {
+    "topic": "Greedy",
+    "description": "Greedy strategies"
+  },
+  {
+    "topic": "Dynamic Programming",
+    "description": "1D/2D DP and classic patterns"
+  },
+  {
+    "topic": "Trie",
+    "description": "Prefix tree problems"
+  },
+  {
+    "topic": "Sliding Window",
+    "description": "Fixed and variable window"
+  },
+  {
+    "topic": "Two Pointer",
+    "description": "Two-pointer patterns"
+  },
+  {
+    "topic": "Prefix Sum",
+    "description": "Range sums and subarray sums"
+  },
+  {
+    "topic": "Bit Manipulation",
+    "description": "Bitwise techniques"
+  }
+]

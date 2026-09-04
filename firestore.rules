@@ -1,0 +1,93 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global Authentication Helper
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // User Isolation Helper (Owner verification)
+    function isOwner(uid) {
+      return isAuthenticated() && request.auth.uid == uid;
+    }
+
+    // ID Validation Helper (ID Poisoning Guard)
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-\\.]+$');
+    }
+
+    // User profile document & private user data
+    match /users/{uid} {
+      allow get: if isOwner(uid) && isValidId(uid);
+      allow list: if isAuthenticated() && request.auth.uid == uid;
+      allow create: if isOwner(uid) && isValidId(uid);
+      allow update: if isOwner(uid) && isValidId(uid);
+      allow delete: if isOwner(uid) && isValidId(uid);
+
+      // User's private interview records
+      match /interviews/{interviewId} {
+        allow get: if isOwner(uid) && isValidId(interviewId);
+        allow list: if isOwner(uid);
+        allow create: if isOwner(uid) && isValidId(interviewId);
+        allow update: if isOwner(uid) && isValidId(interviewId);
+        allow delete: if isOwner(uid) && isValidId(interviewId);
+      }
+
+      // User's personalized roadmap milestones
+      match /roadmap/{roadmapId} {
+        allow get: if isOwner(uid) && isValidId(roadmapId);
+        allow list: if isOwner(uid);
+        allow create: if isOwner(uid) && isValidId(roadmapId);
+        allow update: if isOwner(uid) && isValidId(roadmapId);
+        allow delete: if isOwner(uid) && isValidId(roadmapId);
+      }
+    }
+
+    // Public DSA catalog collections
+    match /questions/{questionId} {
+      allow read: if true;
+      allow write: if isAuthenticated();
+    }
+
+    match /companies/{companyId} {
+      allow read: if true;
+      allow write: if isAuthenticated();
+    }
+
+    match /dsaTopics/{topicId} {
+      allow read: if true;
+      allow write: if isAuthenticated();
+    }
+
+    match /dsaSheets/{sheetId} {
+      allow read: if true;
+      allow write: if isAuthenticated();
+    }
+
+    match /resources/{resourceId} {
+      allow read: if true;
+      allow write: if isAuthenticated();
+    }
+
+    match /videoTopics/{topicId} {
+      allow read: if true;
+      allow write: if isAuthenticated();
+    }
+
+    match /videoResources/{resourceId} {
+      allow read: if true;
+      allow write: if isAuthenticated();
+    }
+
+    // Connection test document
+    match /test/{docId} {
+      allow read, write: if true;
+    }
+
+    // Default deny-all rule for all other paths
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

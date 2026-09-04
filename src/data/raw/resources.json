@@ -1,0 +1,202 @@
+[
+  {
+    "title": "DSA Tutorial",
+    "type": "Concept Resource",
+    "topic": "DSA",
+    "platform": "GeeksforGeeks",
+    "url": "https://www.geeksforgeeks.org/dsa/dsa-tutorial/",
+    "description": "Structured DSA concepts, algorithms and examples."
+  },
+  {
+    "title": "NeetCode Roadmap",
+    "type": "Practice Sheet",
+    "topic": "DSA",
+    "platform": "NeetCode",
+    "url": "https://neetcode.io/roadmap",
+    "description": "Pattern-based interview preparation roadmap."
+  },
+  {
+    "title": "NeetCode 150",
+    "type": "Practice Sheet",
+    "topic": "DSA",
+    "platform": "NeetCode",
+    "url": "https://neetcode.io/practice/practice/neetcode150",
+    "description": "150 curated interview questions."
+  },
+  {
+    "title": "LeetCode Top Interview 150",
+    "type": "Practice Sheet",
+    "topic": "DSA",
+    "platform": "LeetCode",
+    "url": "https://leetcode.com/studyplan/top-interview-150/",
+    "description": "Curated interview preparation list."
+  },
+  {
+    "title": "LeetCode Problemset",
+    "type": "Practice Sheet",
+    "topic": "DSA",
+    "platform": "LeetCode",
+    "url": "https://leetcode.com/problemset/",
+    "description": "Searchable coding problem library."
+  },
+  {
+    "title": "GeeksforGeeks Arrays",
+    "type": "Concept Resource",
+    "topic": "Array",
+    "platform": "GeeksforGeeks",
+    "url": "https://www.geeksforgeeks.org/dsa/array-data-structure/",
+    "description": "Array concepts and practice."
+  },
+  {
+    "title": "GeeksforGeeks Linked List",
+    "type": "Concept Resource",
+    "topic": "Linked List",
+    "platform": "GeeksforGeeks",
+    "url": "https://www.geeksforgeeks.org/data-structures/linked-list/",
+    "description": "Linked list concepts and problems."
+  },
+  {
+    "title": "GeeksforGeeks Stack",
+    "type": "Concept Resource",
+    "topic": "Stack",
+    "platform": "GeeksforGeeks",
+    "url": "https://www.geeksforgeeks.org/stack-data-structure/",
+    "description": "Stack concepts and applications."
+  },
+  {
+    "title": "GeeksforGeeks Queue",
+    "type": "Concept Resource",
+    "topic": "Queue",
+    "platform": "GeeksforGeeks",
+    "url": "https://www.geeksforgeeks.org/queue-data-structure/",
+    "description": "Queue concepts and applications."
+  },
+  {
+    "title": "GeeksforGeeks Trees",
+    "type": "Concept Resource",
+    "topic": "Tree",
+    "platform": "GeeksforGeeks",
+    "url": "https://www.geeksforgeeks.org/binary-tree-data-structure/",
+    "description": "Binary tree concepts and traversals."
+  },
+  {
+    "title": "GeeksforGeeks Graph",
+    "type": "Concept Resource",
+    "topic": "Graph",
+    "platform": "GeeksforGeeks",
+    "url": "https://www.geeksforgeeks.org/graph-data-structure-and-algorithms/",
+    "description": "Graph representations and algorithms."
+  },
+  {
+    "title": "GeeksforGeeks Dynamic Programming",
+    "type": "Concept Resource",
+    "topic": "DP",
+    "platform": "GeeksforGeeks",
+    "url": "https://www.geeksforgeeks.org/dynamic-programming/",
+    "description": "Dynamic programming concepts and patterns."
+  },
+  {
+    "title": "GeeksforGeeks Greedy Algorithms",
+    "type": "Concept Resource",
+    "topic": "Greedy",
+    "platform": "GeeksforGeeks",
+    "url": "https://www.geeksforgeeks.org/greedy-algorithms/",
+    "description": "Greedy strategy and standard problems."
+  },
+  {
+    "title": "GeeksforGeeks Binary Search",
+    "type": "Concept Resource",
+    "topic": "Binary Search",
+    "platform": "GeeksforGeeks",
+    "url": "https://www.geeksforgeeks.org/binary-search/",
+    "description": "Binary search concepts and applications."
+  },
+  {
+    "title": "GeeksforGeeks Sliding Window",
+    "type": "Concept Resource",
+    "topic": "Sliding Window",
+    "platform": "GeeksforGeeks",
+    "url": "https://www.geeksforgeeks.org/window-sliding-technique/",
+    "description": "Sliding window pattern and examples."
+  },
+  {
+    "title": "GeeksforGeeks Two Pointer",
+    "type": "Concept Resource",
+    "topic": "Two Pointer",
+    "platform": "GeeksforGeeks",
+    "url": "https://www.geeksforgeeks.org/two-pointers-technique/",
+    "description": "Two-pointer technique and common use cases."
+  },
+  {
+    "title": "GeeksforGeeks Prefix Sum",
+    "type": "Concept Resource",
+    "topic": "Prefix Sum",
+    "platform": "GeeksforGeeks",
+    "url": "https://www.geeksforgeeks.org/prefix-sum-array-implementation-applications-competitive-programming/",
+    "description": "Prefix sums for range and subarray problems."
+  },
+  {
+    "title": "CP-Algorithms",
+    "type": "Free Course",
+    "topic": "Algorithms",
+    "platform": "CP-Algorithms",
+    "url": "https://cp-algorithms.com/",
+    "description": "Competitive programming algorithms and data structures."
+  },
+  {
+    "title": "VisuAlgo",
+    "type": "Concept Resource",
+    "topic": "DSA",
+    "platform": "VisuAlgo",
+    "url": "https://visualgo.net/en",
+    "description": "Interactive visualizations for algorithms and data structures."
+  },
+  {
+    "title": "Codeforces Problemset",
+    "type": "Practice Sheet",
+    "topic": "Competitive Programming",
+    "platform": "Codeforces",
+    "url": "https://codeforces.com/problemset",
+    "description": "Large competitive programming problem library."
+  },
+  {
+    "title": "HackerRank Interview Preparation Kit",
+    "type": "Practice Sheet",
+    "topic": "Interview Prep",
+    "platform": "HackerRank",
+    "url": "https://www.hackerrank.com/interview/interview-preparation-kit",
+    "description": "Interview-focused coding practice."
+  },
+  {
+    "title": "Striver A2Z DSA Sheet",
+    "type": "Practice Sheet",
+    "topic": "DSA",
+    "platform": "Take U Forward",
+    "url": "https://takeuforward.org/strivers-a2z-dsa-course/strivers-a2z-dsa-course-sheet-2",
+    "description": "Topic-wise DSA learning and practice sheet."
+  },
+  {
+    "title": "Striver SDE Sheet",
+    "type": "Practice Sheet",
+    "topic": "Interview Prep",
+    "platform": "Take U Forward",
+    "url": "https://takeuforward.org/interviews/strivers-sde-sheet-top-coding-interview-problems/",
+    "description": "Curated software engineering interview questions."
+  },
+  {
+    "title": "freeCodeCamp Algorithms",
+    "type": "Free Course",
+    "topic": "Algorithms",
+    "platform": "freeCodeCamp",
+    "url": "https://www.freecodecamp.org/learn/javascript-algorithms-and-data-structures-v8/",
+    "description": "Free algorithms and data structures course."
+  },
+  {
+    "title": "MIT OpenCourseWare Algorithms",
+    "type": "Free Course",
+    "topic": "Algorithms",
+    "platform": "MIT OpenCourseWare",
+    "url": "https://ocw.mit.edu/search/?q=algorithms",
+    "description": "University-level algorithms learning resources."
+  }
+]

@@ -1,0 +1,62 @@
+[
+  {
+    "name": "Amazon",
+    "slug": "amazon"
+  },
+  {
+    "name": "Google",
+    "slug": "google"
+  },
+  {
+    "name": "Microsoft",
+    "slug": "microsoft"
+  },
+  {
+    "name": "Adobe",
+    "slug": "adobe"
+  },
+  {
+    "name": "Meta",
+    "slug": "meta"
+  },
+  {
+    "name": "Flipkart",
+    "slug": "flipkart"
+  },
+  {
+    "name": "Apple",
+    "slug": "apple"
+  },
+  {
+    "name": "Uber",
+    "slug": "uber"
+  },
+  {
+    "name": "Walmart",
+    "slug": "walmart"
+  },
+  {
+    "name": "Atlassian",
+    "slug": "atlassian"
+  },
+  {
+    "name": "Goldman Sachs",
+    "slug": "goldman-sachs"
+  },
+  {
+    "name": "Morgan Stanley",
+    "slug": "morgan-stanley"
+  },
+  {
+    "name": "Oracle",
+    "slug": "oracle"
+  },
+  {
+    "name": "Samsung",
+    "slug": "samsung"
+  },
+  {
+    "name": "PayPal",
+    "slug": "paypal"
+  }
+]
