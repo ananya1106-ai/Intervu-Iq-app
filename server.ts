@@ -196,6 +196,11 @@ async function generateContentWithFallback(
 // API ROUTES
 // -------------------------------------------------------------------------
 
+// Lightweight public health-check endpoint for uptime monitoring (e.g. UptimeRobot / Render)
+app.get("/health", (req, res) => {
+  res.status(200).json({ status: "ok" });
+});
+
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok", time: new Date().toISOString() });
 });
