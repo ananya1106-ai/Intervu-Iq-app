@@ -15,11 +15,17 @@ import {
   ChevronDown, 
   Users, 
   Award, 
-  Star 
+  Star,
+  CreditCard,
+  Loader2,
+  CheckCircle2,
+  AlertCircle,
+  X
 } from 'lucide-react';
 import { PageType } from '../types';
 import { IntervuIqLogo } from './IntervuIqLogo';
 import { auth } from '../firebase';
+import { startRazorpayCheckout, PaymentVerificationResponse, PaymentPlanId } from '../services/razorpayService';
 
 interface LandingPageProps {
   onNavigate: (page: PageType) => void;
@@ -27,6 +33,48 @@ interface LandingPageProps {
 
 export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
+
+  // Razorpay Checkout State for Pricing buttons
+  const [isCheckingOut, setIsCheckingOut] = useState(false);
+  const [checkingOutPlan, setCheckingOutPlan] = useState<PaymentPlanId | null>(null);
+  const [checkoutError, setCheckoutError] = useState<string | null>(null);
+  const [paymentReceipt, setPaymentReceipt] = useState<PaymentVerificationResponse | null>(null);
+  const [authPromptPlan, setAuthPromptPlan] = useState<{ planId: PaymentPlanId; name: string; price: string } | null>(null);
+
+  const handleSelectPlan = (planId: PaymentPlanId) => {
+    setCheckoutError(null);
+
+    // If candidate is not authenticated yet, prompt them to sign in
+    if (!auth.currentUser) {
+      setAuthPromptPlan({
+        planId,
+        name: planId === 'advanced' ? 'Advanced Interview' : 'Standard Interview',
+        price: planId === 'advanced' ? '₹29' : '₹15',
+      });
+      return;
+    }
+
+    setIsCheckingOut(true);
+    setCheckingOutPlan(planId);
+
+    startRazorpayCheckout({
+      planId,
+      onSuccess: (result) => {
+        setIsCheckingOut(false);
+        setCheckingOutPlan(null);
+        setPaymentReceipt(result);
+      },
+      onError: (errMsg) => {
+        setIsCheckingOut(false);
+        setCheckingOutPlan(null);
+        setCheckoutError(errMsg);
+      },
+      onDismiss: () => {
+        setIsCheckingOut(false);
+        setCheckingOutPlan(null);
+      },
+    });
+  };
 
   const stats = [
     { value: '94%', label: 'Offer Success Rate', desc: 'Seniors & juniors securing target roles' },
@@ -508,16 +556,22 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
 
                 <div className="pt-8">
                   <button 
-                    onClick={() => {
-                      if (auth.currentUser) {
-                        onNavigate('overview');
-                      } else {
-                        onNavigate('register');
-                      }
-                    }}
-                    className="w-full py-3 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl text-xs font-bold transition-all cursor-pointer border border-zinc-700/60"
+                    type="button"
+                    disabled={isCheckingOut}
+                    onClick={() => handleSelectPlan('standard')}
+                    className="w-full py-3.5 bg-zinc-800 hover:bg-zinc-750 disabled:bg-zinc-900 disabled:text-zinc-600 text-white rounded-xl text-xs font-bold transition-all cursor-pointer border border-zinc-700/60 flex items-center justify-center gap-2 shadow-sm"
                   >
-                    Choose Standard — ₹15
+                    {isCheckingOut && checkingOutPlan === 'standard' ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin text-emerald-400" />
+                        <span>Opening Razorpay Checkout...</span>
+                      </>
+                    ) : (
+                      <>
+                        <CreditCard className="w-4 h-4 text-emerald-400" />
+                        <span>Choose Standard — ₹15</span>
+                      </>
+                    )}
                   </button>
                 </div>
               </div>
@@ -566,20 +620,46 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
 
                 <div className="pt-8">
                   <button 
-                    onClick={() => {
-                      if (auth.currentUser) {
-                        onNavigate('overview');
-                      } else {
-                        onNavigate('register');
-                      }
-                    }}
-                    className="w-full py-3 bg-emerald-400 hover:bg-emerald-300 text-zinc-950 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-md shadow-emerald-500/15"
+                    type="button"
+                    disabled={isCheckingOut}
+                    onClick={() => handleSelectPlan('advanced')}
+                    className="w-full py-3.5 bg-emerald-400 hover:bg-emerald-300 disabled:bg-zinc-800 disabled:text-zinc-600 text-zinc-950 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-md shadow-emerald-500/15 flex items-center justify-center gap-2"
                   >
-                    Choose Advanced — ₹29
+                    {isCheckingOut && checkingOutPlan === 'advanced' ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin text-zinc-950" />
+                        <span>Opening Razorpay Checkout...</span>
+                      </>
+                    ) : (
+                      <>
+                        <CreditCard className="w-4 h-4 fill-zinc-950" />
+                        <span>Choose Advanced — ₹29</span>
+                      </>
+                    )}
                   </button>
                 </div>
               </div>
             </div>
+
+            {/* Checkout Error Message */}
+            {checkoutError && (
+              <div className="max-w-lg mx-auto p-4 bg-rose-500/10 border border-rose-500/30 rounded-xl flex items-start justify-between text-xs text-rose-300 text-left">
+                <div className="flex items-start gap-2.5">
+                  <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-semibold text-white">Payment Checkout Notice</p>
+                    <p className="mt-0.5 text-zinc-300">{checkoutError}</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setCheckoutError(null)}
+                  className="p-1 text-zinc-400 hover:text-white"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            )}
 
             {/* Proposed launch pricing disclaimer */}
             <p className="text-xs text-zinc-500 text-center max-w-lg mx-auto">
@@ -766,6 +846,119 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
           </div>
         </div>
       </footer>
+
+      {/* RAZORPAY PAYMENT SUCCESS CONFIRMATION RECEIPT MODAL */}
+      {paymentReceipt && (
+        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-[#0e1017] border border-emerald-500/40 rounded-2xl max-w-md w-full p-6 text-left space-y-5 shadow-2xl relative">
+            <button
+              onClick={() => setPaymentReceipt(null)}
+              className="absolute top-4 right-4 p-1.5 text-zinc-400 hover:text-white rounded-lg hover:bg-zinc-900 cursor-pointer"
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 shrink-0">
+                <CheckCircle2 className="w-6 h-6" />
+              </div>
+              <div>
+                <span className="text-[10px] uppercase font-bold text-emerald-400 tracking-wider">Payment Verified</span>
+                <h3 className="text-lg font-bold text-white leading-tight">Interview Session Added!</h3>
+              </div>
+            </div>
+
+            <div className="bg-[#141722] border border-zinc-800 rounded-xl p-4 space-y-2.5 text-xs">
+              <div className="flex justify-between items-center">
+                <span className="text-zinc-400">Plan Selected:</span>
+                <span className="text-white font-semibold">{paymentReceipt.planName}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-zinc-400">Payment ID:</span>
+                <span className="text-zinc-300 font-mono text-[11px]">{paymentReceipt.paymentId}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-zinc-400">Order ID:</span>
+                <span className="text-zinc-300 font-mono text-[11px]">{paymentReceipt.orderId}</span>
+              </div>
+              <div className="flex justify-between items-center border-t border-zinc-800 pt-2 font-medium">
+                <span className="text-zinc-300">Credits Granted:</span>
+                <span className="text-emerald-400 font-bold">+{paymentReceipt.creditsGranted} Interview Session</span>
+              </div>
+            </div>
+
+            <p className="text-xs text-zinc-400 leading-relaxed">
+              Your payment has been cryptographically verified and your interview session credit has been credited to your account.
+            </p>
+
+            <div className="flex gap-3 pt-1">
+              <button
+                type="button"
+                onClick={() => setPaymentReceipt(null)}
+                className="py-2.5 px-4 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 rounded-xl text-xs font-semibold border border-zinc-800 cursor-pointer"
+              >
+                Close
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setPaymentReceipt(null);
+                  onNavigate('overview');
+                }}
+                className="flex-1 py-2.5 bg-emerald-400 hover:bg-emerald-300 text-zinc-950 font-bold rounded-xl text-xs transition-colors flex items-center justify-center gap-1.5 shadow-md shadow-emerald-500/10 cursor-pointer"
+              >
+                <span>Go to Workspace</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ACCOUNT REQUIRED MODAL FOR UNLOGGED-IN BUYERS */}
+      {authPromptPlan && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-[#0e1017] border border-zinc-800 rounded-2xl max-w-md w-full p-6 text-left space-y-5 shadow-2xl relative">
+            <button
+              onClick={() => setAuthPromptPlan(null)}
+              className="absolute top-4 right-4 p-1.5 text-zinc-400 hover:text-white rounded-lg hover:bg-zinc-900 cursor-pointer"
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            <div className="space-y-1">
+              <span className="text-xs uppercase font-semibold text-emerald-400 tracking-wider">Account Required</span>
+              <h3 className="text-lg font-bold text-white">Sign In to Complete Purchase</h3>
+              <p className="text-xs text-zinc-400">
+                You selected the <strong className="text-white">{authPromptPlan.name} ({authPromptPlan.price})</strong>. Please log in or register so your purchased interview credit is linked directly to your profile.
+              </p>
+            </div>
+
+            <div className="flex flex-col gap-2.5 pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setAuthPromptPlan(null);
+                  onNavigate('login');
+                }}
+                className="w-full py-3 bg-emerald-400 hover:bg-emerald-300 text-zinc-950 font-bold text-xs rounded-xl transition-all shadow-md shadow-emerald-500/10 cursor-pointer flex items-center justify-center gap-2"
+              >
+                Log In to Continue Checkout
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setAuthPromptPlan(null);
+                  onNavigate('register');
+                }}
+                className="w-full py-3 bg-zinc-800 hover:bg-zinc-700 text-white font-bold text-xs rounded-xl transition-all border border-zinc-700/60 cursor-pointer flex items-center justify-center gap-2"
+              >
+                Create Free Account First
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
