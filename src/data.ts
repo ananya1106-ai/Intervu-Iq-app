@@ -5,7 +5,7 @@ export const INITIAL_USER: UserProfile = {
   email: 'alex.rivera@stanford.edu',
   role: 'Software Engineer',
   targetRole: 'Full Stack Engineer',
-  avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=256&h=256',
+  avatar: '/src/assets/images/avatar_user_alex_1792125725562.jpg',
   experienceLevel: 'Entry',
   resumeUploaded: true,
   resumeFileName: 'Alex_Rivera_Resume_2026.pdf',

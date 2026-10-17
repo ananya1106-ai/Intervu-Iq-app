@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { PageType } from '../types';
 import { IntervuIqLogo } from './IntervuIqLogo';
+import { auth } from '../firebase';
 
 interface LandingPageProps {
   onNavigate: (page: PageType) => void;
@@ -363,127 +364,262 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
         </div>
       </section>
 
-      {/* PRICING SECTION */}
-      <section id="pricing" className="py-24 px-6 border-t border-zinc-900 bg-zinc-950/20">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-xs uppercase font-bold text-emerald-400 tracking-wider mb-3">Flexible Models</h2>
-            <p className="text-3xl sm:text-5xl font-bold tracking-tight text-white mb-4">Transparent Symmetrical Pricing</p>
-            <p className="text-zinc-400 max-w-2xl mx-auto">Get absolute access. Scale your capabilities as your target roles and interviews approach.</p>
+      {/* PRICING SECTION - 15 FREE INTERVIEWS + PAY-PER-INTERVIEW MODEL */}
+      <section id="pricing" className="py-24 px-6 border-t border-zinc-900 bg-[#08090e]">
+        <div className="max-w-7xl mx-auto space-y-16">
+          {/* Main Pricing Header */}
+          <div className="text-center max-w-3xl mx-auto">
+            <span className="text-xs uppercase font-semibold text-emerald-400 tracking-widest block mb-3">Transparent Launch Pricing</span>
+            <h2 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-white mb-4">
+              15 Free Interviews First. Then Pay Only When You Practice.
+            </h2>
+            <p className="text-zinc-400 text-sm sm:text-base leading-relaxed">
+              Start with 15 complete AI mock interviews at zero cost. After your trial, practice on demand with transparent per-interview pricing and no compulsory monthly subscriptions.
+            </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Free Tier */}
-            <div className="bg-zinc-900/30 border border-zinc-800/80 p-8 rounded-2xl flex flex-col justify-between">
-              <div>
-                <h3 className="text-lg font-bold text-zinc-300">Basic Tier</h3>
-                <p className="text-zinc-500 text-sm mt-1">Perfect for casual self-assessment</p>
-                <div className="my-6">
-                  <span className="text-4xl font-extrabold text-white">$0</span>
-                  <span className="text-zinc-500 text-sm"> / forever</span>
+          {/* 1. FREE TRIAL SPOTLIGHT BANNER */}
+          <div className="bg-[#0d0f17] border border-zinc-800/90 rounded-2xl p-8 sm:p-10 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl from-emerald-500/10 via-purple-500/5 to-transparent pointer-events-none rounded-bl-full" />
+            
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center relative z-10">
+              <div className="lg:col-span-7 space-y-4 text-left">
+                <div className="flex items-center gap-2 text-xs font-semibold text-emerald-400">
+                  <Sparkles className="w-4 h-4" />
+                  <span>Free Trial Tier · ₹0</span>
                 </div>
-                <div className="space-y-3.5 text-sm text-zinc-400 border-t border-zinc-800 pt-6">
-                  <div className="flex items-center gap-2">
-                    <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                    <span>2 Basic Mock Sessions / mo</span>
+                <h3 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+                  Experience IntervuIQ for Free
+                </h3>
+                <p className="text-zinc-400 text-sm leading-relaxed max-w-xl">
+                  Explore every major AI interview preparation feature before you pay. Complete 15 full-length mock interviews and use all core modules with zero commitment.
+                </p>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-3 text-xs text-zinc-300">
+                  <div className="flex items-center gap-2.5">
+                    <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+                    <span className="font-semibold text-white">15 free completed AI mock interviews</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                    <span>Standard Resume ATS Check</span>
+                  <div className="flex items-center gap-2.5">
+                    <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+                    <span>AI Mock Interview simulator</span>
                   </div>
-                  <div className="flex items-center gap-2 text-zinc-600">
-                    <ShieldCheck className="w-4 h-4 text-zinc-600" />
-                    <span>No Live Camera Landmarks</span>
+                  <div className="flex items-center gap-2.5">
+                    <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+                    <span>ATS Resume Analyzer</span>
                   </div>
-                  <div className="flex items-center gap-2 text-zinc-600">
-                    <ShieldCheck className="w-4 h-4 text-zinc-600" />
-                    <span>No Speech Filler-word Counter</span>
+                  <div className="flex items-center gap-2.5">
+                    <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+                    <span>Speech & Vocal Coach</span>
+                  </div>
+                  <div className="flex items-center gap-2.5">
+                    <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+                    <span>Expression Tracker</span>
+                  </div>
+                  <div className="flex items-center gap-2.5">
+                    <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+                    <span>DSA Prep Hub and AI DSA Coach</span>
+                  </div>
+                  <div className="flex items-center gap-2.5 sm:col-span-2">
+                    <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+                    <span>Performance Analytics and Personalized Roadmap</span>
                   </div>
                 </div>
               </div>
-              <button 
-                onClick={() => onNavigate('register')}
-                className="w-full py-3 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl font-semibold transition-all mt-8"
-              >
-                Sign Up Free
-              </button>
+
+              <div className="lg:col-span-5 bg-[#141722] border border-zinc-800 p-6 sm:p-8 rounded-xl flex flex-col justify-between text-left space-y-6">
+                <div>
+                  <span className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider block">Candidate Access</span>
+                  <div className="flex items-baseline gap-2 my-2">
+                    <span className="text-4xl font-extrabold text-white">₹0</span>
+                    <span className="text-xs text-zinc-400">/ 15 full sessions</span>
+                  </div>
+                  <p className="text-xs text-zinc-400 leading-relaxed">
+                    Test your verbal communication, system design, algorithm explanations, and biometric composure at your own pace.
+                  </p>
+                </div>
+
+                <div className="space-y-3 pt-2">
+                  <button 
+                    onClick={() => onNavigate('register')}
+                    className="w-full py-3.5 bg-emerald-400 hover:bg-emerald-300 text-zinc-950 font-bold rounded-xl text-sm transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/10 cursor-pointer"
+                  >
+                    Start Free Trial <ArrowRight className="w-4 h-4" />
+                  </button>
+                  <p className="text-[11px] text-zinc-500 text-center">
+                    No payment required to get started.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* 2. PAY-PER-INTERVIEW SECTION */}
+          <div className="space-y-8">
+            <div className="text-center max-w-2xl mx-auto">
+              <span className="text-xs uppercase font-semibold text-purple-400 tracking-widest block mb-2">On-Demand Practice</span>
+              <h3 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight mb-2">
+                Pay Only When You Practice
+              </h3>
+              <p className="text-zinc-400 text-sm">
+                No compulsory monthly subscription. Choose the interview you need.
+              </p>
             </div>
 
-            {/* Pro Tier (Popular) */}
-            <div className="bg-zinc-900/60 border-2 border-emerald-500/60 p-8 rounded-2xl relative flex flex-col justify-between shadow-lg shadow-emerald-500/5">
-              <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-emerald-500 text-zinc-900 text-xs font-extrabold rounded-full uppercase tracking-wider">Most Popular</span>
-              <div>
-                <h3 className="text-lg font-bold text-white">Full-Stack Pro</h3>
-                <p className="text-emerald-400 text-sm mt-1">For serious active job hunters</p>
-                <div className="my-6">
-                  <span className="text-4xl font-extrabold text-white">$24</span>
-                  <span className="text-zinc-500 text-sm"> / month</span>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+              {/* Standard Interview Card */}
+              <div className="bg-[#0d0f17] border border-zinc-800 rounded-2xl p-7 flex flex-col justify-between text-left hover:border-zinc-700 transition-colors">
+                <div className="space-y-6">
+                  <div>
+                    <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wider block">Standard Session</span>
+                    <h4 className="text-xl font-bold text-white mt-1">Standard Interview</h4>
+                    <p className="text-xs text-zinc-400 mt-1">
+                      Ideal for rapid drills, baseline score checks, and recurring self-evaluations.
+                    </p>
+                  </div>
+
+                  <div className="border-y border-zinc-800/80 py-4">
+                    <div className="flex items-baseline gap-1.5">
+                      <span className="text-3xl font-extrabold text-white font-mono tabular-nums">₹15</span>
+                      <span className="text-xs text-zinc-400">per interview</span>
+                    </div>
+                    <span className="text-[11px] text-zinc-500 block mt-1">Single session purchase · No recurring charge</span>
+                  </div>
+
+                  <div className="space-y-3 text-xs text-zinc-300">
+                    <div className="flex items-start gap-2.5">
+                      <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                      <span>AI-powered mock interview tailored to role & level</span>
+                    </div>
+                    <div className="flex items-start gap-2.5">
+                      <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                      <span>Interview performance score (0–100 index)</span>
+                    </div>
+                    <div className="flex items-start gap-2.5">
+                      <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                      <span>Essential feedback and improvement suggestions</span>
+                    </div>
+                    <div className="flex items-start gap-2.5">
+                      <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                      <span>Speech transcript recording & answer review</span>
+                    </div>
+                  </div>
                 </div>
-                <div className="space-y-3.5 text-sm text-zinc-300 border-t border-zinc-800/80 pt-6">
-                  <div className="flex items-center gap-2">
-                    <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                    <span className="font-medium text-white">Unlimited Full Mock Sessions</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                    <span>Unlimited ATS Resume Grading</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                    <span>Live Webcam Expression Mesh</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                    <span>Filler-word Audio Analysis</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                    <span>Personalized DSA & Design Roadmap</span>
-                  </div>
+
+                <div className="pt-8">
+                  <button 
+                    onClick={() => {
+                      if (auth.currentUser) {
+                        onNavigate('overview');
+                      } else {
+                        onNavigate('register');
+                      }
+                    }}
+                    className="w-full py-3 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl text-xs font-bold transition-all cursor-pointer border border-zinc-700/60"
+                  >
+                    Choose Standard — ₹15
+                  </button>
                 </div>
               </div>
-              <button 
-                onClick={() => onNavigate('register')}
-                className="w-full py-3 bg-emerald-400 hover:bg-emerald-300 text-zinc-950 rounded-xl font-bold transition-all shadow-md shadow-emerald-950/40 mt-8"
-              >
-                Access Pro Account
-              </button>
+
+              {/* Advanced Interview Card (Subtly highlighted) */}
+              <div className="bg-[#0d0f17] border border-purple-500/40 rounded-2xl p-7 flex flex-col justify-between text-left relative shadow-lg shadow-purple-950/20">
+                <div className="space-y-6">
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-semibold text-purple-400 uppercase tracking-wider">In-Depth Assessment</span>
+                      <span className="text-[10px] font-semibold text-purple-300 bg-purple-500/10 border border-purple-500/20 px-2 py-0.5 rounded">Deep Feedback</span>
+                    </div>
+                    <h4 className="text-xl font-bold text-white mt-1">Advanced Interview</h4>
+                    <p className="text-xs text-zinc-400 mt-1">
+                      Comprehensive simulation with deep answer evaluations, cadence insights, and precision remediation.
+                    </p>
+                  </div>
+
+                  <div className="border-y border-zinc-800/80 py-4">
+                    <div className="flex items-baseline gap-1.5">
+                      <span className="text-3xl font-extrabold text-white font-mono tabular-nums">₹29</span>
+                      <span className="text-xs text-zinc-400">per interview</span>
+                    </div>
+                    <span className="text-[11px] text-zinc-500 block mt-1">Single session purchase · No recurring charge</span>
+                  </div>
+
+                  <div className="space-y-3 text-xs text-zinc-300">
+                    <div className="flex items-start gap-2.5">
+                      <ShieldCheck className="w-4 h-4 text-purple-400 shrink-0 mt-0.5" />
+                      <span className="font-semibold text-white">Everything included in Standard</span>
+                    </div>
+                    <div className="flex items-start gap-2.5">
+                      <ShieldCheck className="w-4 h-4 text-purple-400 shrink-0 mt-0.5" />
+                      <span>More detailed interview feedback across all 10 responses</span>
+                    </div>
+                    <div className="flex items-start gap-2.5">
+                      <ShieldCheck className="w-4 h-4 text-purple-400 shrink-0 mt-0.5" />
+                      <span>Communication and answer-quality insights (WPM & filler words)</span>
+                    </div>
+                    <div className="flex items-start gap-2.5">
+                      <ShieldCheck className="w-4 h-4 text-purple-400 shrink-0 mt-0.5" />
+                      <span>Personalized improvement suggestions and weak-spot remediation</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-8">
+                  <button 
+                    onClick={() => {
+                      if (auth.currentUser) {
+                        onNavigate('overview');
+                      } else {
+                        onNavigate('register');
+                      }
+                    }}
+                    className="w-full py-3 bg-emerald-400 hover:bg-emerald-300 text-zinc-950 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-md shadow-emerald-500/15"
+                  >
+                    Choose Advanced — ₹29
+                  </button>
+                </div>
+              </div>
             </div>
 
-            {/* Enterprise Tier */}
-            <div className="bg-zinc-900/30 border border-zinc-800/80 p-8 rounded-2xl flex flex-col justify-between">
-              <div>
-                <h3 className="text-lg font-bold text-zinc-300">University & Org</h3>
-                <p className="text-zinc-500 text-sm mt-1">For placement teams & bootcamps</p>
-                <div className="my-6">
-                  <span className="text-4xl font-extrabold text-white">$189</span>
-                  <span className="text-zinc-500 text-sm"> / month</span>
-                </div>
-                <div className="space-y-3.5 text-sm text-zinc-400 border-t border-zinc-800 pt-6">
-                  <div className="flex items-center gap-2">
-                    <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                    <span>Everything in Pro for up to 50 users</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                    <span>SaaS Placement Command Dashboard</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                    <span>Custom Enterprise Question Bank</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                    <span>Direct HR Link Export</span>
-                  </div>
+            {/* Proposed launch pricing disclaimer */}
+            <p className="text-xs text-zinc-500 text-center max-w-lg mx-auto">
+              Prices are proposed launch prices and can be configured before release.
+            </p>
+          </div>
+
+          {/* 3. INSTITUTION PLANS */}
+          <div className="bg-[#0b0c13] border border-zinc-800/80 rounded-2xl p-8 sm:p-10 text-left max-w-4xl mx-auto">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+              <div className="space-y-2 max-w-xl">
+                <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wider block">Colleges & Training Programs</span>
+                <h4 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
+                  Prepare Your Entire Campus
+                </h4>
+                <p className="text-xs text-zinc-400 leading-relaxed">
+                  Equip engineering departments, placement cells, and career bootcamps with institution-level student access, cohort performance tracking, and placement analytics.
+                </p>
+                <div className="flex flex-wrap gap-x-4 gap-y-1.5 text-xs text-zinc-400 pt-2">
+                  <span>· Batch student onboarding</span>
+                  <span>· Campus placement readiness tracking</span>
+                  <span>· Shared performance reports</span>
                 </div>
               </div>
-              <button 
-                onClick={() => onNavigate('register')}
-                className="w-full py-3 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl font-semibold transition-all mt-8"
-              >
-                Contact Institution Team
-              </button>
+
+              <div className="shrink-0">
+                <button 
+                  onClick={() => {
+                    const el = document.getElementById('contact-institution-dialog');
+                    if (el) {
+                      el.scrollIntoView({ behavior: 'smooth' });
+                    } else {
+                      window.location.href = 'mailto:institutions@intervuiq.com?subject=Campus%20Inquiry';
+                    }
+                  }}
+                  className="px-6 py-3 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-white rounded-xl text-xs font-bold transition-all cursor-pointer"
+                >
+                  Contact Us
+                </button>
+              </div>
             </div>
           </div>
         </div>

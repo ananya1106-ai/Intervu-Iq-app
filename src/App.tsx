@@ -38,7 +38,8 @@ import {
   Bell,
   Flame,
   Cpu,
-  Code2
+  Code2,
+  ShieldCheck
 } from 'lucide-react';
 
 export default function App() {
@@ -312,6 +313,40 @@ export default function App() {
               );
             })}
           </nav>
+
+          {/* Free Trial Status Card */}
+          <div className="bg-[#141722] border border-zinc-800/80 rounded-xl p-3.5 space-y-2.5">
+            <div className="flex items-center justify-between text-[11px]">
+              <span className="font-semibold text-zinc-300 flex items-center gap-1.5">
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" /> Free Trial
+              </span>
+              <span className="text-emerald-400 font-mono tabular-nums font-bold">
+                {Math.min(15, interviews.length)}/15 Free
+              </span>
+            </div>
+            <div className="w-full h-1.5 bg-zinc-900 rounded-full overflow-hidden">
+              <div 
+                className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full"
+                style={{ width: `${Math.min(100, Math.round((Math.min(15, interviews.length) / 15) * 100))}%` }}
+              />
+            </div>
+            <div className="flex justify-between items-center text-[10px] text-zinc-500">
+              <span>{Math.max(0, 15 - interviews.length)} remaining</span>
+              <button 
+                type="button"
+                onClick={() => {
+                  setPage('landing');
+                  setTimeout(() => {
+                    const el = document.getElementById('pricing');
+                    if (el) el.scrollIntoView({ behavior: 'smooth' });
+                  }, 120);
+                }}
+                className="text-emerald-400 hover:text-emerald-300 font-medium cursor-pointer"
+              >
+                Pricing
+              </button>
+            </div>
+          </div>
         </div>
 
         {/* Sidebar Footer details */}
@@ -357,8 +392,13 @@ export default function App() {
           </div>
 
           {/* Quick Header metric logs */}
-          <div className="flex items-center gap-4">
-            <div className="hidden sm:flex items-center gap-2.5 px-3 py-1.5 rounded-lg bg-zinc-900 border border-zinc-800 text-[11px] font-medium text-zinc-400">
+          <div className="flex items-center gap-3">
+            <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-zinc-900 border border-zinc-800 text-[11px] font-medium text-emerald-400">
+              <ShieldCheck className="w-3.5 h-3.5" />
+              <span>Trial: <strong className="font-mono tabular-nums">{Math.min(15, interviews.length)}/15</strong> Free</span>
+            </div>
+
+            <div className="hidden sm:flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-zinc-900 border border-zinc-800 text-[11px] font-medium text-zinc-400">
               <Flame className="w-3.5 h-3.5 text-orange-500" />
               <span>4 Days Streak</span>
             </div>
@@ -390,7 +430,7 @@ export default function App() {
               <X className="w-4 h-4" />
             </button>
 
-            <div className="space-y-8 text-left mt-4">
+            <div className="space-y-6 text-left mt-4 overflow-y-auto">
               <div 
                 onClick={() => {
                   setPage('landing');
@@ -399,6 +439,27 @@ export default function App() {
                 className="flex items-center gap-3 cursor-pointer hover:opacity-90 transition-opacity"
               >
                 <IntervuIqLogo size="md" />
+              </div>
+
+              {/* Mobile Drawer Free Trial Status Card */}
+              <div className="bg-[#141722] border border-zinc-800/80 rounded-xl p-3 space-y-2">
+                <div className="flex items-center justify-between text-[11px]">
+                  <span className="font-semibold text-zinc-300 flex items-center gap-1.5">
+                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" /> Free Trial
+                  </span>
+                  <span className="text-emerald-400 font-mono tabular-nums font-bold">
+                    {Math.min(15, interviews.length)}/15
+                  </span>
+                </div>
+                <div className="w-full h-1.5 bg-zinc-900 rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-emerald-500 rounded-full"
+                    style={{ width: `${Math.min(100, Math.round((Math.min(15, interviews.length) / 15) * 100))}%` }}
+                  />
+                </div>
+                <span className="text-[10px] text-zinc-500 block">
+                  {Math.max(0, 15 - interviews.length)} free interviews remaining
+                </span>
               </div>
 
               <nav className="space-y-1">

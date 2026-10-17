@@ -3,7 +3,12 @@ import {
   getDoc, 
   setDoc, 
   updateDoc, 
-  serverTimestamp 
+  serverTimestamp,
+  collection,
+  getDocs,
+  query,
+  orderBy,
+  increment
 } from "firebase/firestore";
 import { db } from "../firebase/firestore";
 import { auth } from "../firebase/auth";
@@ -65,6 +70,10 @@ export interface UserDocument {
   targetRole: string;
   onboardingCompleted: boolean;
   profilePhotoUrl?: string | null;
+  purchasedInterviewsCount?: number;
+  activeTier?: 'standard' | 'advanced' | 'free';
+  lastPurchasedPlan?: 'standard' | 'advanced';
+  lastPaymentAt?: any;
   createdAt?: any;
   updatedAt?: any;
 
@@ -77,6 +86,17 @@ export interface UserDocument {
    * branch?: string;
    * graduationYear?: string | number;
    */
+}
+
+export interface UserPaymentRecord {
+  paymentId: string;
+  orderId: string;
+  planId: 'standard' | 'advanced';
+  planName?: string;
+  amount: number;
+  currency: string;
+  status: string;
+  createdAt?: any;
 }
 
 /**
@@ -158,5 +178,82 @@ export async function updateUserDocument(
     });
   } catch (error) {
     handleFirestoreError(error, OperationType.UPDATE, path);
+  }
+}
+
+/**
+ * Saves a verified payment transaction into the user's subcollection at `users/{uid}/payments/{paymentId}`.
+ */
+export async function recordUserPayment(
+  uid: string,
+  paymentData: {
+    paymentId: string;
+    orderId: string;
+    planId: 'standard' | 'advanced';
+    planName?: string;
+    amount: number;
+    currency: string;
+    status: string;
+  }
+): Promise<void> {
+  if (!uid || !paymentData.paymentId) return;
+
+  const path = `users/${uid}/payments/${paymentData.paymentId}`;
+  const paymentRef = doc(db, 'users', uid, 'payments', paymentData.paymentId);
+
+  try {
+    await setDoc(paymentRef, {
+      ...paymentData,
+      createdAt: serverTimestamp()
+    });
+  } catch (error) {
+    handleFirestoreError(error, OperationType.WRITE, path);
+  }
+}
+
+/**
+ * Increments purchased interview credits for the user after verified payment.
+ */
+export async function incrementUserCredits(
+  uid: string,
+  creditsToAdd: number = 1,
+  tier: 'standard' | 'advanced' = 'standard'
+): Promise<void> {
+  if (!uid) return;
+
+  const path = `users/${uid}`;
+  const userRef = doc(db, 'users', uid);
+
+  try {
+    await setDoc(userRef, {
+      purchasedInterviewsCount: increment(creditsToAdd),
+      activeTier: tier,
+      lastPurchasedPlan: tier,
+      lastPaymentAt: serverTimestamp(),
+      updatedAt: serverTimestamp()
+    }, { merge: true });
+  } catch (error) {
+    handleFirestoreError(error, OperationType.UPDATE, path);
+  }
+}
+
+/**
+ * Fetches the user's payment records from `users/{uid}/payments`.
+ */
+export async function getUserPayments(uid: string): Promise<UserPaymentRecord[]> {
+  if (!uid) return [];
+
+  const path = `users/${uid}/payments`;
+  const paymentsRef = collection(db, 'users', uid, 'payments');
+
+  try {
+    const q = query(paymentsRef, orderBy('createdAt', 'desc'));
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => ({
+      ...doc.data()
+    })) as UserPaymentRecord[];
+  } catch (error) {
+    console.warn("Could not fetch user payments:", error);
+    return [];
   }
 }

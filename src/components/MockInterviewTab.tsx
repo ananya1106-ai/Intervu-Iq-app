@@ -70,6 +70,7 @@ export const MockInterviewTab: React.FC<MockInterviewTabProps> = ({ onSessionSav
   // Setup options
   const [interviewType, setInterviewType] = useState<'HR' | 'Technical' | 'Behavioral' | 'Mixed'>('Mixed');
   const [difficulty, setDifficulty] = useState<'Easy' | 'Medium' | 'Hard'>('Medium');
+  const [interviewTier, setInterviewTier] = useState<'Standard' | 'Advanced'>('Advanced');
 
   // Questions and Progress
   const [questions, setQuestions] = useState<InterviewQuestionItem[]>([]);
@@ -667,9 +668,94 @@ export const MockInterviewTab: React.FC<MockInterviewTabProps> = ({ onSessionSav
               </div>
             </div>
 
-            <div className="p-4 bg-[#090a0f] border border-zinc-800/60 rounded-xl flex items-center gap-3 text-xs text-zinc-400">
-              <Info className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-              <span>You will receive <strong>10 personalized questions</strong>. You will answer using your microphone while camera stays active.</span>
+            {/* 3. Choose Interview Tier (Standard vs Advanced) */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <label className="block text-xs font-bold text-zinc-400 uppercase tracking-widest">3. Select Interview Tier</label>
+                <span className="text-[11px] font-semibold text-emerald-400 flex items-center gap-1.5">
+                  <ShieldCheck className="w-3.5 h-3.5" /> Included in your free trial
+                </span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Standard Tier */}
+                <div
+                  onClick={() => setInterviewTier('Standard')}
+                  className={`p-4 rounded-xl border cursor-pointer text-left transition-all relative ${
+                    interviewTier === 'Standard'
+                      ? 'border-emerald-500/70 bg-[#141722] shadow-md shadow-emerald-500/5'
+                      : 'border-zinc-800/80 bg-[#090a0f] hover:border-zinc-700'
+                  }`}
+                >
+                  <div className="flex items-baseline justify-between mb-1">
+                    <span className="font-bold text-white text-xs">Standard Interview</span>
+                    <span className="text-xs font-extrabold text-white font-mono tabular-nums">₹15 <span className="text-[10px] font-normal text-zinc-500">per interview</span></span>
+                  </div>
+                  <span className="inline-block text-[10px] font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded mb-2">
+                    Included in your free trial
+                  </span>
+                  <ul className="text-[11px] text-zinc-400 space-y-1.5">
+                    <li className="flex items-center gap-1.5">
+                      <span className="w-1 h-1 rounded-full bg-emerald-400" />
+                      <span>10 AI-generated interview questions</span>
+                    </li>
+                    <li className="flex items-center gap-1.5">
+                      <span className="w-1 h-1 rounded-full bg-emerald-400" />
+                      <span>Interview performance score (0-100)</span>
+                    </li>
+                    <li className="flex items-center gap-1.5">
+                      <span className="w-1 h-1 rounded-full bg-emerald-400" />
+                      <span>Essential feedback & suggestions</span>
+                    </li>
+                  </ul>
+                </div>
+
+                {/* Advanced Tier */}
+                <div
+                  onClick={() => setInterviewTier('Advanced')}
+                  className={`p-4 rounded-xl border cursor-pointer text-left transition-all relative ${
+                    interviewTier === 'Advanced'
+                      ? 'border-purple-500/70 bg-[#141722] shadow-md shadow-purple-950/20'
+                      : 'border-zinc-800/80 bg-[#090a0f] hover:border-zinc-700'
+                  }`}
+                >
+                  <div className="flex items-baseline justify-between mb-1">
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-white text-xs">Advanced Interview</span>
+                      <span className="text-[9px] font-bold text-purple-300 uppercase tracking-wider">Deep</span>
+                    </div>
+                    <span className="text-xs font-extrabold text-white font-mono tabular-nums">₹29 <span className="text-[10px] font-normal text-zinc-500">per interview</span></span>
+                  </div>
+                  <span className="inline-block text-[10px] font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded mb-2">
+                    Included in your free trial
+                  </span>
+                  <ul className="text-[11px] text-zinc-400 space-y-1.5">
+                    <li className="flex items-center gap-1.5">
+                      <span className="w-1 h-1 rounded-full bg-purple-400" />
+                      <span className="text-zinc-200 font-medium">Everything included in Standard</span>
+                    </li>
+                    <li className="flex items-center gap-1.5">
+                      <span className="w-1 h-1 rounded-full bg-purple-400" />
+                      <span>Deep answer-quality & communication analytics</span>
+                    </li>
+                    <li className="flex items-center gap-1.5">
+                      <span className="w-1 h-1 rounded-full bg-purple-400" />
+                      <span>Speech cadence (WPM) & filler-word breakdown</span>
+                    </li>
+                    <li className="flex items-center gap-1.5">
+                      <span className="w-1 h-1 rounded-full bg-purple-400" />
+                      <span>Personalized improvement roadmap items</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-4 bg-[#090a0f] border border-zinc-800/60 rounded-xl flex items-center justify-between text-xs text-zinc-400">
+              <div className="flex items-center gap-3">
+                <Info className="w-4 h-4 text-emerald-400 shrink-0" />
+                <span>You will receive <strong>10 personalized questions</strong> based on your profile. Verbal answers recorded live.</span>
+              </div>
+              <span className="text-emerald-400 font-semibold shrink-0 hidden sm:inline-block">₹0 Trial Cost</span>
             </div>
 
             <button
@@ -686,7 +772,7 @@ export const MockInterviewTab: React.FC<MockInterviewTabProps> = ({ onSessionSav
               ) : (
                 <>
                   <Play className="w-5 h-5 fill-zinc-950" />
-                  <span>Start 10-Question AI Mock Interview</span>
+                  <span>Start 10-Question AI Mock Interview ({interviewTier})</span>
                 </>
               )}
             </button>
@@ -694,29 +780,38 @@ export const MockInterviewTab: React.FC<MockInterviewTabProps> = ({ onSessionSav
 
           {/* Right Info Box */}
           <div className="lg:col-span-4 space-y-6">
-            <div className="bg-[#0d0f17] border border-zinc-800 rounded-2xl p-6 space-y-4">
-              <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                <ShieldCheck className="w-4 h-4 text-emerald-400" /> Evaluation Criteria
-              </h3>
-              <p className="text-xs text-zinc-400 leading-relaxed">
-                After answering all 10 questions, Gemini analyzes your speech transcripts and scores your session across:
-              </p>
-              <div className="space-y-2 text-xs">
+            <div className="bg-[#0d0f17] border border-zinc-800 rounded-2xl p-6 space-y-5 text-left">
+              <div>
+                <div className="flex items-center gap-2 text-xs font-semibold text-emerald-400 mb-1">
+                  <ShieldCheck className="w-4 h-4" />
+                  <span>Trial Session Active</span>
+                </div>
+                <h3 className="text-base font-bold text-white">Session Overview</h3>
+                <p className="text-xs text-zinc-400 mt-1">
+                  Tier: <strong className="text-white">{interviewTier} Interview</strong> (Proposed ₹{interviewTier === 'Standard' ? '15' : '29'}/session)
+                </p>
+                <div className="mt-2 p-2.5 bg-emerald-500/10 border border-emerald-500/20 rounded-lg text-[11px] text-emerald-300 font-medium">
+                  Covered by your 15-interview free trial. No charges will be applied.
+                </div>
+              </div>
+
+              <div className="border-t border-zinc-800/80 pt-4 space-y-2 text-xs">
+                <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider block">Evaluation Metrics</span>
                 <div className="p-2.5 bg-[#141722] rounded-lg border border-zinc-800 text-zinc-300 flex items-center justify-between">
                   <span>Communication Clarity</span>
-                  <span className="font-bold text-emerald-400">0-100</span>
+                  <span className="font-bold text-emerald-400 font-mono tabular-nums">0-100</span>
                 </div>
                 <div className="p-2.5 bg-[#141722] rounded-lg border border-zinc-800 text-zinc-300 flex items-center justify-between">
                   <span>Technical Knowledge</span>
-                  <span className="font-bold text-emerald-400">0-100</span>
+                  <span className="font-bold text-emerald-400 font-mono tabular-nums">0-100</span>
                 </div>
                 <div className="p-2.5 bg-[#141722] rounded-lg border border-zinc-800 text-zinc-300 flex items-center justify-between">
                   <span>Confidence & Pace</span>
-                  <span className="font-bold text-emerald-400">0-100</span>
+                  <span className="font-bold text-emerald-400 font-mono tabular-nums">0-100</span>
                 </div>
                 <div className="p-2.5 bg-[#141722] rounded-lg border border-zinc-800 text-zinc-300 flex items-center justify-between">
                   <span>Problem Solving</span>
-                  <span className="font-bold text-emerald-400">0-100</span>
+                  <span className="font-bold text-emerald-400 font-mono tabular-nums">0-100</span>
                 </div>
               </div>
             </div>

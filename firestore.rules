@@ -42,6 +42,13 @@ service cloud.firestore {
         allow update: if isOwner(uid) && isValidId(roadmapId);
         allow delete: if isOwner(uid) && isValidId(roadmapId);
       }
+
+      // User's private payment history and receipts
+      match /payments/{paymentId} {
+        allow get, list: if isOwner(uid);
+        allow create, update: if isOwner(uid) && isValidId(paymentId);
+        allow delete: if false;
+      }
     }
 
     // Public DSA catalog collections

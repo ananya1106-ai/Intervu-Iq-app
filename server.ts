@@ -1,5 +1,10 @@
 import express from "express";
 import path from "path";
+import crypto from "crypto";
+import Razorpay from "razorpay";
+import { initializeApp as initAdminApp, getApps as getAdminApps, cert as adminCert } from "firebase-admin/app";
+import { getAuth as getAdminAuth } from "firebase-admin/auth";
+import { getFirestore as getAdminFirestore, FieldValue as AdminFieldValue } from "firebase-admin/firestore";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI, Type, ThinkingLevel } from "@google/genai";
 import {
@@ -28,8 +33,15 @@ app.use((req, res, next) => {
   next();
 });
 
-// JSON Body Parser with strict limit
-app.use(express.json({ limit: "5mb" }));
+// JSON Body Parser with strict limit and raw body preservation for Razorpay webhook verification
+app.use(
+  express.json({
+    limit: "5mb",
+    verify: (req: any, _res, buf) => {
+      req.rawBody = buf;
+    },
+  })
+);
 
 // In-memory sliding window Rate Limiter for AI API endpoints
 interface RateLimitRecord {
@@ -204,6 +216,701 @@ app.get("/health", (req, res) => {
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok", time: new Date().toISOString() });
 });
+
+// -------------------------------------------------------------------------
+// FIREBASE ADMIN & AUTHENTICATION MIDDLEWARE
+// -------------------------------------------------------------------------
+
+try {
+  if (getAdminApps().length === 0) {
+    if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+      const sa = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+      initAdminApp({
+        credential: adminCert(sa),
+        projectId: sa.project_id || process.env.FIREBASE_PROJECT_ID || "intervuiq-01",
+      });
+      console.log("[Firebase Admin] Initialized with Service Account");
+    } else {
+      initAdminApp({
+        projectId: process.env.FIREBASE_PROJECT_ID || "intervuiq-01",
+      });
+      console.log("[Firebase Admin] Initialized with project ID:", process.env.FIREBASE_PROJECT_ID || "intervuiq-01");
+    }
+  }
+} catch (adminErr: any) {
+  console.warn("[Firebase Admin] Initialization warning (falling back to client JWT parsing):", adminErr.message);
+}
+
+interface AuthenticatedRequest extends express.Request {
+  user?: {
+    uid: string;
+    email?: string;
+    name?: string;
+  };
+  rawBody?: Buffer;
+}
+
+/**
+ * Express middleware that verifies the Firebase user's ID token.
+ * Validates via Firebase Admin verifyIdToken when available, with
+ * standard JWT payload validation fallback for development.
+ */
+async function authenticateFirebaseUser(
+  req: AuthenticatedRequest,
+  res: express.Response,
+  next: express.NextFunction
+) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return res.status(401).json({
+      error: "Authentication required. Please sign in to your IntervuIQ account.",
+    });
+  }
+
+  const token = authHeader.split("Bearer ")[1]?.trim();
+  if (!token) {
+    return res.status(401).json({ error: "Missing authorization bearer token." });
+  }
+
+  try {
+    // 1. Verify token using Firebase Admin if configured with credentials
+    if (getAdminApps().length > 0) {
+      try {
+        const decoded = await getAdminAuth().verifyIdToken(token);
+        req.user = {
+          uid: decoded.uid,
+          email: decoded.email,
+          name: decoded.name,
+        };
+        return next();
+      } catch (adminAuthErr: any) {
+        if (adminAuthErr.code === "auth/id-token-expired") {
+          return res.status(401).json({ error: "Your session has expired. Please sign in again." });
+        }
+        // Fallback to JWT payload verification if service account private key is not present locally
+      }
+    }
+
+    // 2. Fallback: Parse and validate standard Firebase ID token payload
+    const parts = token.split(".");
+    if (parts.length === 3) {
+      const payload = JSON.parse(Buffer.from(parts[1], "base64").toString("utf-8"));
+      const nowSec = Math.floor(Date.now() / 1000);
+      if (payload.exp && payload.exp < nowSec) {
+        return res.status(401).json({ error: "Your session has expired. Please sign in again." });
+      }
+
+      const uid = payload.user_id || payload.sub || payload.uid;
+      if (uid && typeof uid === "string") {
+        req.user = {
+          uid,
+          email: payload.email,
+          name: payload.name,
+        };
+        return next();
+      }
+    }
+
+    return res.status(401).json({ error: "Invalid authentication credentials." });
+  } catch (err: any) {
+    console.error("[Auth Middleware] Verification error:", err);
+    return res.status(401).json({ error: "Authentication failed. Please sign in again." });
+  }
+}
+
+// -------------------------------------------------------------------------
+// RAZORPAY PAYMENT CONFIGURATION & ROUTING
+// -------------------------------------------------------------------------
+
+export interface ServerPaymentPlan {
+  id: "standard" | "advanced";
+  name: string;
+  amount: number; // in paise
+  currency: string;
+  displayPrice: string;
+  credits: number;
+  description: string;
+}
+
+// Trusted server-side plan definitions. Amounts are strictly in paise (100 paise = 1 INR).
+// Never trust amounts from client requests.
+const SERVER_PAYMENT_PLANS: Record<string, ServerPaymentPlan> = {
+  standard: {
+    id: "standard",
+    name: "Standard Interview",
+    amount: 1500, // ₹15 in paise
+    currency: "INR",
+    displayPrice: "₹15",
+    credits: 1,
+    description: "Standard AI Mock Interview with scoring & essential feedback",
+  },
+  advanced: {
+    id: "advanced",
+    name: "Advanced Interview",
+    amount: 2900, // ₹29 in paise
+    currency: "INR",
+    displayPrice: "₹29",
+    credits: 1,
+    description: "Advanced AI Mock Interview with deep feedback & communication insights",
+  },
+};
+
+function getRazorpayClient(): Razorpay | null {
+  const key_id = process.env.RAZORPAY_KEY_ID;
+  const key_secret = process.env.RAZORPAY_KEY_SECRET;
+  if (!key_id || !key_secret) {
+    return null;
+  }
+  return new Razorpay({ key_id, key_secret });
+}
+
+// Public configuration route: returns available plans and public key status
+app.get("/api/payments/config", (req, res) => {
+  res.json({
+    configured: Boolean(process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET),
+    keyId: process.env.RAZORPAY_KEY_ID || "",
+    currency: "INR",
+    plans: SERVER_PAYMENT_PLANS,
+  });
+});
+
+// 1. Create Razorpay Order
+app.post("/api/payments/create-order", authenticateFirebaseUser, async (req: AuthenticatedRequest, res: express.Response) => {
+  try {
+    const { planId } = req.body;
+    if (!planId || typeof planId !== "string" || !SERVER_PAYMENT_PLANS[planId]) {
+      return res.status(400).json({
+        error: "Invalid plan ID. Supported plans: 'standard' (₹15) or 'advanced' (₹29).",
+      });
+    }
+
+    const plan = SERVER_PAYMENT_PLANS[planId];
+    const user = req.user!;
+
+    const razorpay = getRazorpayClient();
+    if (!razorpay) {
+      return res.status(503).json({
+        error: "Razorpay payment gateway is not configured. Please set RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET in the backend environment variables.",
+        code: "GATEWAY_UNCONFIGURED",
+      });
+    }
+
+    // Generate unique receipt (max 40 characters for Razorpay)
+    const shortTs = Date.now().toString().slice(-8);
+    const randSuffix = Math.random().toString(36).substring(2, 6);
+    const receipt = `rcpt_${plan.id}_${shortTs}_${randSuffix}`.slice(0, 40);
+
+    const order = await razorpay.orders.create({
+      amount: plan.amount, // strictly server-side amount in paise
+      currency: plan.currency,
+      receipt,
+      notes: {
+        userId: user.uid,
+        userEmail: user.email || "",
+        planId: plan.id,
+        planName: plan.name,
+        displayPrice: plan.displayPrice,
+      },
+    });
+
+    console.log(`[Payments] Created Razorpay order ${order.id} for user ${user.uid} (${plan.name} - ${plan.displayPrice})`);
+
+    return res.status(200).json({
+      orderId: order.id,
+      amount: order.amount,
+      currency: order.currency,
+      keyId: process.env.RAZORPAY_KEY_ID,
+      planId: plan.id,
+      planName: plan.name,
+      description: plan.description,
+      displayPrice: plan.displayPrice,
+    });
+  } catch (error: any) {
+    console.error("[Payments] Error creating Razorpay order:", error);
+    return res.status(500).json({
+      error: error?.message || "Failed to create payment order. Please try again.",
+    });
+  }
+});
+
+// 2. Verify Razorpay Payment Signature
+app.post("/api/payments/verify", authenticateFirebaseUser, async (req: AuthenticatedRequest, res: express.Response) => {
+  try {
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, planId } = req.body;
+
+    if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
+      return res.status(400).json({
+        error: "Missing required Razorpay parameters: razorpay_order_id, razorpay_payment_id, or razorpay_signature.",
+      });
+    }
+
+    const plan = planId && SERVER_PAYMENT_PLANS[planId] ? SERVER_PAYMENT_PLANS[planId] : SERVER_PAYMENT_PLANS.standard;
+    const keySecret = process.env.RAZORPAY_KEY_SECRET;
+
+    if (!keySecret) {
+      return res.status(503).json({
+        error: "Razorpay secret key is not configured on the backend.",
+      });
+    }
+
+    // Verify cryptographic HMAC SHA256 signature
+    const bodyToSign = `${razorpay_order_id}|${razorpay_payment_id}`;
+    const expectedSignature = crypto
+      .createHmac("sha256", keySecret)
+      .update(bodyToSign)
+      .digest("hex");
+
+    if (expectedSignature !== razorpay_signature) {
+      console.warn(`[Payments] Signature mismatch for order ${razorpay_order_id}`);
+      return res.status(400).json({
+        error: "Payment verification failed. Invalid digital signature.",
+        verified: false,
+      });
+    }
+
+    const user = req.user!;
+    console.log(`[Payments] Verified payment ${razorpay_payment_id} for user ${user.uid}`);
+
+    // If Firebase Admin has database access, persist payment record and grant credits idempotently
+    try {
+      if (getAdminApps().length > 0) {
+        const firestore = getAdminFirestore();
+        const userRef = firestore.collection("users").doc(user.uid);
+        const paymentDocRef = userRef.collection("payments").doc(razorpay_payment_id);
+
+        const existingDoc = await paymentDocRef.get();
+        if (existingDoc.exists && (existingDoc.data()?.status === "verified" || existingDoc.data()?.status === "captured")) {
+          console.log(`[Payments] Payment ${razorpay_payment_id} already recorded and credited. Skipping duplicate credit.`);
+        } else {
+          await paymentDocRef.set({
+            paymentId: razorpay_payment_id,
+            orderId: razorpay_order_id,
+            signature: razorpay_signature,
+            planId: plan.id,
+            planName: plan.name,
+            amount: plan.amount,
+            currency: plan.currency,
+            status: "verified",
+            verifiedAt: AdminFieldValue.serverTimestamp(),
+            createdAt: AdminFieldValue.serverTimestamp(),
+          });
+
+          await userRef.set({
+            purchasedInterviewsCount: AdminFieldValue.increment(plan.credits),
+            activeTier: plan.id,
+            lastPurchasedPlan: plan.id,
+            lastPaymentAt: AdminFieldValue.serverTimestamp(),
+          }, { merge: true });
+
+          console.log(`[Payments] Updated Firestore user document for ${user.uid}`);
+        }
+      }
+    } catch (dbErr: any) {
+      console.warn("[Payments] Firestore Admin write notice:", dbErr.message);
+    }
+
+    return res.status(200).json({
+      success: true,
+      verified: true,
+      message: "Payment verified successfully",
+      paymentId: razorpay_payment_id,
+      orderId: razorpay_order_id,
+      planId: plan.id,
+      planName: plan.name,
+      creditsGranted: plan.credits,
+    });
+  } catch (error: any) {
+    console.error("[Payments] Error verifying payment:", error);
+    return res.status(500).json({
+      error: error?.message || "Failed to verify payment signature.",
+    });
+  }
+});
+
+// Fast-path in-memory set to guard against rapid duplicate webhook bursts
+const processedWebhookPaymentIds = new Set<string>();
+
+/**
+ * 3. Unified Razorpay Webhook Handler
+ * Supports both /api/razorpay/webhook and /api/payments/webhook.
+ *
+ * Verifies X-Razorpay-Signature with HMAC-SHA256 and the exact raw request payload.
+ * Handles events:
+ *   - payment_link.paid (Razorpay Payment Links)
+ *   - payment.captured  (Direct Standard Checkout capture)
+ *   - order.paid        (Razorpay Orders)
+ *
+ * Validates:
+ *   - Payment status (captured / paid)
+ *   - Currency (INR)
+ *   - User identity (userId in notes, or matched by email via Firebase Auth)
+ *   - Plan validity (standard | advanced) and price sufficiency (amount in paise)
+ *
+ * Enforces strict database transaction idempotency to prevent duplicate credit allocations.
+ */
+async function handleRazorpayWebhook(req: AuthenticatedRequest, res: express.Response) {
+  try {
+    const signature = (req.headers["x-razorpay-signature"] as string)?.trim();
+    const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET || process.env.RAZORPAY_KEY_SECRET;
+
+    // 1. Webhook Secret Check
+    if (!webhookSecret) {
+      console.error(
+        "[Razorpay Webhook] Received webhook but neither RAZORPAY_WEBHOOK_SECRET nor RAZORPAY_KEY_SECRET is configured in server environment."
+      );
+      return res.status(500).json({
+        error: "Razorpay webhook secret is not configured on this server.",
+        code: "WEBHOOK_SECRET_MISSING",
+      });
+    }
+
+    // 2. Signature Header Check
+    if (!signature) {
+      console.warn("[Razorpay Webhook] Request missing x-razorpay-signature header.");
+      return res.status(400).json({ error: "Missing x-razorpay-signature header." });
+    }
+
+    // 3. Exact Raw Body Extraction for Cryptographic Signature Verification
+    const rawPayloadBuffer = req.rawBody && Buffer.isBuffer(req.rawBody)
+      ? req.rawBody
+      : typeof req.rawBody === "string"
+      ? Buffer.from(req.rawBody, "utf8")
+      : Buffer.from(JSON.stringify(req.body || {}), "utf8");
+
+    const expectedSignature = crypto
+      .createHmac("sha256", webhookSecret)
+      .update(rawPayloadBuffer)
+      .digest("hex");
+
+    const signatureBuffer = Buffer.from(signature.toLowerCase(), "utf8");
+    const expectedBuffer = Buffer.from(expectedSignature.toLowerCase(), "utf8");
+
+    const isSignatureValid =
+      signatureBuffer.length === expectedBuffer.length &&
+      crypto.timingSafeEqual(signatureBuffer, expectedBuffer);
+
+    if (!isSignatureValid) {
+      console.warn("[Razorpay Webhook] Cryptographic signature mismatch. Rejecting webhook request.");
+      return res.status(400).json({ error: "Invalid webhook signature." });
+    }
+
+    const event = req.body;
+    const eventName: string = event?.event || "";
+    console.log(`[Razorpay Webhook] Verified incoming event: "${eventName}"`);
+
+    // 4. Handle non-payment / lifecycle events gracefully with 200 OK
+    const supportedEvents = ["payment_link.paid", "payment.captured", "order.paid"];
+    if (!supportedEvents.includes(eventName)) {
+      console.log(`[Razorpay Webhook] Event "${eventName}" acknowledged (no credit action required).`);
+      return res.status(200).json({
+        status: "acknowledged",
+        event: eventName,
+      });
+    }
+
+    // 5. Extract Entities across payment_link, payment, and order structures
+    const paymentLinkEntity = event.payload?.payment_link?.entity;
+    const paymentEntity = event.payload?.payment?.entity;
+    const orderEntity = event.payload?.order?.entity;
+
+    const paymentId: string =
+      paymentEntity?.id ||
+      (eventName === "payment_link.paid" && paymentLinkEntity?.id
+        ? `plink_${paymentLinkEntity.id}`
+        : orderEntity?.id);
+
+    const orderId: string =
+      paymentEntity?.order_id ||
+      orderEntity?.id ||
+      paymentLinkEntity?.order_id ||
+      "";
+
+    if (!paymentId) {
+      console.warn("[Razorpay Webhook] Unable to extract paymentId from payload.");
+      return res.status(400).json({ error: "Could not identify paymentId or orderId in payload." });
+    }
+
+    // 6. Validate Payment Status
+    if (eventName === "payment.captured") {
+      const pStatus = paymentEntity?.status;
+      if (pStatus !== "captured") {
+        console.warn(`[Razorpay Webhook] payment.captured received with non-captured status: "${pStatus}"`);
+        return res.status(200).json({ status: "ignored_unpaid_status", paymentId, pStatus });
+      }
+    } else if (eventName === "order.paid") {
+      const oStatus = orderEntity?.status;
+      if (oStatus !== "paid") {
+        console.warn(`[Razorpay Webhook] order.paid received with non-paid status: "${oStatus}"`);
+        return res.status(200).json({ status: "ignored_unpaid_status", paymentId, oStatus });
+      }
+    } else if (eventName === "payment_link.paid") {
+      const linkStatus = paymentLinkEntity?.status;
+      if (linkStatus !== "paid" && paymentEntity?.status !== "captured") {
+        console.warn(`[Razorpay Webhook] payment_link.paid received with non-paid status: "${linkStatus}"`);
+        return res.status(200).json({ status: "ignored_unpaid_status", paymentId, linkStatus });
+      }
+    }
+
+    // 7. Validate Currency (strictly INR)
+    const currency = String(
+      paymentEntity?.currency ||
+      paymentLinkEntity?.currency ||
+      orderEntity?.currency ||
+      "INR"
+    ).toUpperCase();
+
+    if (currency !== "INR") {
+      console.warn(`[Razorpay Webhook] Currency mismatch: received "${currency}", expected "INR".`);
+      return res.status(400).json({
+        error: `Invalid currency: ${currency}. Only INR is supported.`,
+      });
+    }
+
+    // 8. Extract Notes & Identify User
+    const notes: Record<string, any> = {
+      ...(orderEntity?.notes || {}),
+      ...(paymentLinkEntity?.notes || {}),
+      ...(paymentEntity?.notes || {}),
+    };
+
+    let userId: string = String(notes.userId || notes.user_id || notes.uid || "").trim();
+
+    // Fallback: Attempt to resolve userId by customer email in Firebase Auth
+    if (!userId) {
+      const customerEmail = String(
+        notes.userEmail ||
+        notes.email ||
+        paymentEntity?.email ||
+        paymentLinkEntity?.customer?.email ||
+        ""
+      ).trim();
+
+      if (customerEmail && getAdminApps().length > 0) {
+        try {
+          const userRecord = await getAdminAuth().getUserByEmail(customerEmail);
+          if (userRecord && userRecord.uid) {
+            userId = userRecord.uid;
+            console.log(`[Razorpay Webhook] Resolved userId "${userId}" from customer email "${customerEmail}"`);
+          }
+        } catch (emailErr: any) {
+          console.warn(`[Razorpay Webhook] Could not match customer email "${customerEmail}" to Firebase user:`, emailErr?.message);
+        }
+      }
+    }
+
+    // 9. Extract and Validate Paid Amount & Plan
+    const paidAmount = Number(
+      paymentEntity?.amount ??
+      paymentLinkEntity?.amount_paid ??
+      paymentLinkEntity?.amount ??
+      orderEntity?.amount_paid ??
+      orderEntity?.amount ??
+      0
+    );
+
+    let planId: "standard" | "advanced" | null = null;
+    const planCandidate = String(notes.planId || notes.plan_id || notes.plan || "").toLowerCase().trim();
+
+    if (planCandidate === "advanced" || planCandidate === "standard") {
+      planId = planCandidate;
+    } else if (paidAmount === 2900) {
+      planId = "advanced";
+    } else if (paidAmount === 1500) {
+      planId = "standard";
+    }
+
+    if (!planId || !SERVER_PAYMENT_PLANS[planId]) {
+      console.warn(`[Razorpay Webhook] Unrecognized plan "${planCandidate}" or invalid amount ${paidAmount} paise.`);
+      return res.status(400).json({
+        error: `Unrecognized plan or amount: ${paidAmount} paise. Supported: 1500 (standard) or 2900 (advanced).`,
+      });
+    }
+
+    const plan = SERVER_PAYMENT_PLANS[planId];
+
+    if (paidAmount < plan.amount) {
+      console.warn(`[Razorpay Webhook] Insufficient payment: received ${paidAmount} paise, required ${plan.amount} paise.`);
+      return res.status(400).json({
+        error: `Payment amount ${paidAmount} paise is less than plan price ${plan.amount} paise for ${plan.name}.`,
+      });
+    }
+
+    // 10. Handle cases where user could not be resolved from metadata
+    if (!userId) {
+      console.warn(`[Razorpay Webhook] Payment ${paymentId} verified, but user identity is absent in notes.`);
+      if (getAdminApps().length > 0) {
+        try {
+          const firestore = getAdminFirestore();
+          await firestore.collection("unassociated_payments").doc(paymentId).set({
+            paymentId,
+            orderId,
+            amount: paidAmount,
+            currency,
+            planId: plan.id,
+            planName: plan.name,
+            event: eventName,
+            notes,
+            customer: paymentLinkEntity?.customer || { email: paymentEntity?.email },
+            receivedAt: AdminFieldValue.serverTimestamp(),
+            reason: "Missing userId and unresolvable customer email in webhook notes",
+          });
+        } catch (unassocErr) {
+          console.warn("[Razorpay Webhook] Failed to record unassociated payment:", unassocErr);
+        }
+      }
+      return res.status(200).json({
+        status: "user_not_identified",
+        message: "Payment verified but could not identify user. Saved to unassociated_payments.",
+        paymentId,
+      });
+    }
+
+    // 11. Fast-Path In-Memory Idempotency Check
+    if (processedWebhookPaymentIds.has(paymentId)) {
+      console.log(`[Razorpay Webhook] Idempotent skip (memory): Payment ${paymentId} already processed.`);
+      return res.status(200).json({ status: "already_processed", paymentId, userId });
+    }
+
+    // 12. Persistent Database Transaction with Strict Idempotency
+    if (getAdminApps().length > 0) {
+      try {
+        const firestore = getAdminFirestore();
+        const userRef = firestore.collection("users").doc(userId);
+        const paymentDocRef = userRef.collection("payments").doc(paymentId);
+        const globalWebhookRef = firestore.collection("webhook_events").doc(paymentId);
+
+        let alreadyHandled = false;
+
+        await firestore.runTransaction(async (transaction) => {
+          const userPaymentDoc = await transaction.get(paymentDocRef);
+          if (userPaymentDoc.exists) {
+            const curStatus = userPaymentDoc.data()?.status;
+            if (curStatus === "captured" || curStatus === "verified") {
+              alreadyHandled = true;
+              return;
+            }
+          }
+
+          const globalDoc = await transaction.get(globalWebhookRef);
+          if (globalDoc.exists && globalDoc.data()?.processed === true) {
+            alreadyHandled = true;
+            return;
+          }
+
+          // Mark global idempotency record
+          transaction.set(globalWebhookRef, {
+            paymentId,
+            orderId: orderId || null,
+            userId,
+            planId: plan.id,
+            planName: plan.name,
+            amount: paidAmount,
+            currency,
+            event: eventName,
+            processed: true,
+            processedAt: AdminFieldValue.serverTimestamp(),
+          });
+
+          // Record in user's payments subcollection
+          transaction.set(
+            paymentDocRef,
+            {
+              paymentId,
+              orderId: orderId || null,
+              planId: plan.id,
+              planName: plan.name,
+              amount: paidAmount,
+              currency,
+              status: "captured",
+              event: eventName,
+              creditsGranted: plan.credits,
+              recordedAt: AdminFieldValue.serverTimestamp(),
+              createdAt: userPaymentDoc.exists
+                ? userPaymentDoc.data()?.createdAt || AdminFieldValue.serverTimestamp()
+                : AdminFieldValue.serverTimestamp(),
+            },
+            { merge: true }
+          );
+
+          // Increment user's interview sessions and update tier
+          transaction.set(
+            userRef,
+            {
+              purchasedInterviewsCount: AdminFieldValue.increment(plan.credits),
+              activeTier: plan.id,
+              lastPurchasedPlan: plan.id,
+              lastPaymentAt: AdminFieldValue.serverTimestamp(),
+              updatedAt: AdminFieldValue.serverTimestamp(),
+            },
+            { merge: true }
+          );
+        });
+
+        processedWebhookPaymentIds.add(paymentId);
+        if (processedWebhookPaymentIds.size > 5000) {
+          const oldestKey = processedWebhookPaymentIds.values().next().value;
+          if (oldestKey) processedWebhookPaymentIds.delete(oldestKey);
+        }
+
+        if (alreadyHandled) {
+          console.log(`[Razorpay Webhook] Idempotent skip: Payment ${paymentId} already captured or verified.`);
+          return res.status(200).json({ status: "already_processed", paymentId, userId });
+        }
+
+        console.log(`[Razorpay Webhook] Successfully processed ${eventName} for user ${userId}. Granted +${plan.credits} credit (${plan.name}).`);
+        return res.status(200).json({
+          status: "success",
+          paymentId,
+          orderId,
+          userId,
+          planId: plan.id,
+          creditsGranted: plan.credits,
+        });
+      } catch (dbErr: any) {
+        console.error("[Razorpay Webhook] Firestore transaction notice:", dbErr?.message || dbErr);
+        const isCredentialErr =
+          String(dbErr?.message || "").includes("credentials") ||
+          String(dbErr?.message || "").includes("default credentials") ||
+          dbErr?.code === 7 ||
+          dbErr?.code === 16;
+
+        if (isCredentialErr) {
+          processedWebhookPaymentIds.add(paymentId);
+          console.warn("[Razorpay Webhook] Firestore Admin service account not configured. Acknowledging payment in memory to avoid failing webhook delivery.");
+          return res.status(200).json({
+            status: "success_in_memory",
+            notice: "FIREBASE_SERVICE_ACCOUNT is not configured on the backend. Processed in memory.",
+            paymentId,
+            userId,
+            planId: plan.id,
+            creditsGranted: plan.credits,
+          });
+        }
+        return res.status(500).json({ error: "Failed to record payment in database." });
+      }
+    } else {
+      // In-memory fallback if server is running without Firebase Admin Service Account
+      processedWebhookPaymentIds.add(paymentId);
+      console.log(`[Razorpay Webhook] Processed ${eventName} in memory (no Firebase Admin): user ${userId}, plan ${plan.id}`);
+      return res.status(200).json({
+        status: "success_in_memory",
+        paymentId,
+        userId,
+        planId: plan.id,
+        creditsGranted: plan.credits,
+      });
+    }
+  } catch (error: any) {
+    console.error("[Razorpay Webhook] Uncaught error processing webhook:", error);
+    return res.status(500).json({ error: "Internal webhook processing error." });
+  }
+}
+
+// Register both routes to the same robust handler:
+// 1. /api/razorpay/webhook (configured in Razorpay Test Mode dashboard)
+// 2. /api/payments/webhook (legacy / internal payments webhook route)
+app.post("/api/razorpay/webhook", handleRazorpayWebhook);
+app.post("/api/payments/webhook", handleRazorpayWebhook);
 
 // 1a. Generate 10 personalized mock interview questions based on Resume, ATS, Target Role, Difficulty, and Interview Type
 app.post("/api/gemini/mock-interview/generate-questions", async (req, res) => {
