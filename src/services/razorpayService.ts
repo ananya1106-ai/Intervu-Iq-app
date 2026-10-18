@@ -1,5 +1,5 @@
 import { auth } from "../firebase/auth";
-import { recordUserPayment, incrementUserCredits } from "./userService";
+import { recordUserPaymentAndCredit } from "./userService";
 
 export type PaymentPlanId = 'standard' | 'advanced';
 
@@ -113,20 +113,23 @@ export async function verifyRazorpayPayment(payload: {
     throw new Error(data.error || "Payment signature verification failed.");
   }
 
-  // Also persist directly into client Firestore for instantaneous offline and security rule alignment
+  // Idempotently persist into client Firestore (avoids duplicate crediting if server already updated)
   try {
     const amountInRupees = payload.planId === 'advanced' ? 29 : 15;
-    await recordUserPayment(currentUser.uid, {
-      paymentId: payload.razorpay_payment_id,
-      orderId: payload.razorpay_order_id,
-      planId: payload.planId,
-      planName: payload.planId === 'advanced' ? 'Advanced Interview' : 'Standard Interview',
-      amount: amountInRupees * 100,
-      currency: "INR",
-      status: "verified",
-    });
-
-    await incrementUserCredits(currentUser.uid, 1, payload.planId);
+    await recordUserPaymentAndCredit(
+      currentUser.uid,
+      {
+        paymentId: payload.razorpay_payment_id,
+        orderId: payload.razorpay_order_id,
+        planId: payload.planId,
+        planName: payload.planId === 'advanced' ? 'Advanced Interview' : 'Standard Interview',
+        amount: amountInRupees * 100,
+        currency: "INR",
+        status: "verified",
+      },
+      1,
+      Boolean((data as any).firestoreUpdated)
+    );
   } catch (syncErr) {
     console.warn("Client Firestore payment record sync notice:", syncErr);
   }

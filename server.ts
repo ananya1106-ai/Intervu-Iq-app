@@ -497,6 +497,7 @@ app.post("/api/payments/verify", authenticateFirebaseUser, async (req: Authentic
 
           await userRef.set({
             purchasedInterviewsCount: AdminFieldValue.increment(plan.credits),
+            purchasedInterviewCredits: AdminFieldValue.increment(plan.credits),
             activeTier: plan.id,
             lastPurchasedPlan: plan.id,
             lastPaymentAt: AdminFieldValue.serverTimestamp(),
@@ -518,6 +519,7 @@ app.post("/api/payments/verify", authenticateFirebaseUser, async (req: Authentic
       planId: plan.id,
       planName: plan.name,
       creditsGranted: plan.credits,
+      firestoreUpdated: getAdminApps().length > 0,
     });
   } catch (error: any) {
     console.error("[Payments] Error verifying payment:", error);
@@ -837,6 +839,7 @@ async function handleRazorpayWebhook(req: AuthenticatedRequest, res: express.Res
             userRef,
             {
               purchasedInterviewsCount: AdminFieldValue.increment(plan.credits),
+              purchasedInterviewCredits: AdminFieldValue.increment(plan.credits),
               activeTier: plan.id,
               lastPurchasedPlan: plan.id,
               lastPaymentAt: AdminFieldValue.serverTimestamp(),

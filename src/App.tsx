@@ -21,6 +21,7 @@ import { RoadmapTab } from './components/RoadmapTab';
 import { ProfileSettingsTab } from './components/ProfileSettingsTab';
 import { DSARecommendationsTab } from './components/DSARecommendationsTab';
 import { DsaPrepHubTab } from './components/DsaPrepHubTab';
+import { PricingTab } from './components/PricingTab';
 import { IntervuIqLogo } from './components/IntervuIqLogo';
 import { 
   Sparkles, 
@@ -39,7 +40,8 @@ import {
   Flame,
   Cpu,
   Code2,
-  ShieldCheck
+  ShieldCheck,
+  CreditCard
 } from 'lucide-react';
 
 export default function App() {
@@ -216,6 +218,7 @@ export default function App() {
     { id: 'roadmap', label: 'Personalized Roadmap', icon: <Award className="w-4 h-4" /> },
     { id: 'dsa-prep', label: 'DSA Prep Hub', icon: <Code2 className="w-4 h-4" /> },
     { id: 'dsa-recommendations', label: 'DSA Recommendations', icon: <Cpu className="w-4 h-4" /> },
+    { id: 'pricing', label: 'Pricing & Plans', icon: <CreditCard className="w-4 h-4" /> },
     { id: 'profile', label: 'Settings & Profile', icon: <User className="w-4 h-4" /> }
   ];
 
@@ -258,6 +261,8 @@ export default function App() {
         return <DsaPrepHubTab />;
       case 'dsa-recommendations':
         return <DSARecommendationsTab />;
+      case 'pricing':
+        return <PricingTab onNavigateTab={(tab) => setActiveTab(tab)} />;
       case 'profile':
         return <ProfileSettingsTab user={user} onUpdateUser={handleUpdateProfile} />;
       default:
@@ -334,16 +339,10 @@ export default function App() {
               <span>{Math.max(0, 15 - interviews.length)} remaining</span>
               <button 
                 type="button"
-                onClick={() => {
-                  setPage('landing');
-                  setTimeout(() => {
-                    const el = document.getElementById('pricing');
-                    if (el) el.scrollIntoView({ behavior: 'smooth' });
-                  }, 120);
-                }}
+                onClick={() => setActiveTab('pricing')}
                 className="text-emerald-400 hover:text-emerald-300 font-medium cursor-pointer"
               >
-                Pricing
+                Pricing & Plans
               </button>
             </div>
           </div>

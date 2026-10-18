@@ -903,7 +903,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
                 type="button"
                 onClick={() => {
                   setPaymentReceipt(null);
-                  onNavigate('overview');
+                  onNavigate('dashboard');
                 }}
                 className="flex-1 py-2.5 bg-emerald-400 hover:bg-emerald-300 text-zinc-950 font-bold rounded-xl text-xs transition-colors flex items-center justify-center gap-1.5 shadow-md shadow-emerald-500/10 cursor-pointer"
               >

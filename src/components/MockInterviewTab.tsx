@@ -34,14 +34,21 @@ import {
   getUserInterviewProfile, 
   generateInterviewQuestions, 
   saveInterviewSession, 
+  getUserInterviews,
   InterviewQuestionItem, 
   AnswerItem, 
   EvaluationResultData,
   UserInterviewProfile 
 } from '../services/interviewService';
+import { 
+  getUserDocument, 
+  getUserCreditBalance, 
+  consumeUserInterviewCredit, 
+  UserCreditBalance 
+} from '../services/userService';
 import { speechRecognitionService } from '../services/speechRecognitionService';
 import { evaluateInterviewSession } from '../services/interviewFeedbackService';
-import { FacialMetrics, ExpressionSummaryData, SpeechAnalysisData, FillerBreakdown } from '../types';
+import { FacialMetrics, ExpressionSummaryData, SpeechAnalysisData, FillerBreakdown, PageType } from '../types';
 import { startLandmarkTrackingEngine, aggregateExpressionSummary } from '../services/expressionTrackerService';
 import { 
   LiveSpeechAnalyzer, 
@@ -52,11 +59,13 @@ import {
 
 interface MockInterviewTabProps {
   onSessionSaved?: (sessionData: any) => void;
+  onNavigateTab?: (tab: PageType) => void;
 }
 
-export const MockInterviewTab: React.FC<MockInterviewTabProps> = ({ onSessionSaved }) => {
+export const MockInterviewTab: React.FC<MockInterviewTabProps> = ({ onSessionSaved, onNavigateTab }) => {
   // Phase state: 'setup' | 'active' | 'evaluating' | 'result'
   const [phase, setPhase] = useState<'setup' | 'active' | 'evaluating' | 'result'>('setup');
+  const [creditBalance, setCreditBalance] = useState<UserCreditBalance | null>(null);
 
   // Candidate profile from Firestore
   const [candidateProfile, setCandidateProfile] = useState<UserInterviewProfile>({
@@ -128,14 +137,24 @@ export const MockInterviewTab: React.FC<MockInterviewTabProps> = ({ onSessionSav
   const isEvaluatingRef = useRef(false);
   const speechTimeoutRef = useRef<any>(null);
 
-  // 1. Load candidate profile from Firestore on mount
+  // 1. Load candidate profile and accurate credit balance from Firestore on mount
   useEffect(() => {
     async function loadProfile() {
       setLoadingProfile(true);
       const user = auth.currentUser;
       if (user) {
-        const prof = await getUserInterviewProfile(user.uid);
-        setCandidateProfile(prof);
+        try {
+          const [prof, userDoc, interviewsList] = await Promise.all([
+            getUserInterviewProfile(user.uid),
+            getUserDocument(user.uid).catch(() => null),
+            getUserInterviews(user.uid).catch(() => [])
+          ]);
+          setCandidateProfile(prof);
+          const bal = getUserCreditBalance(userDoc, Array.isArray(interviewsList) ? interviewsList.length : 0);
+          setCreditBalance(bal);
+        } catch (err) {
+          console.warn("Notice: could not load profile or credit balance in MockInterviewTab:", err);
+        }
       }
       setLoadingProfile(false);
     }

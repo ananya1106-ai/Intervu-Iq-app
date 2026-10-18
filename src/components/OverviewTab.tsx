@@ -29,7 +29,7 @@ import { auth } from '../firebase';
 import { getUserAtsData } from '../services/atsService';
 import { InterviewSessionData, getFormattedInterviewDate } from '../services/interviewService';
 import { startRazorpayCheckout, PaymentVerificationResponse } from '../services/razorpayService';
-import { getUserDocument } from '../services/userService';
+import { getUserDocument, getUserCreditBalance, UserCreditBalance, UserDocument } from '../services/userService';
 
 interface OverviewTabProps {
   user: UserProfile;
@@ -47,14 +47,10 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
   onSelectInterviewDetail 
 }) => {
   const [atsScore, setAtsScore] = useState<number | null>(null);
-  const [purchasedCredits, setPurchasedCredits] = useState<number>(0);
+  const [userDoc, setUserDoc] = useState<UserDocument | null>(null);
   const [isCheckingOut, setIsCheckingOut] = useState<boolean>(false);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const [paymentReceipt, setPaymentReceipt] = useState<PaymentVerificationResponse | null>(null);
-  
-  // Trial model state: 15 free interviews then pay-per-interview
-  const TOTAL_FREE_INTERVIEWS = 15;
-  const realCompletedCount = interviews.length;
   
   // Interactive preview toggle allowing evaluation of the exhausted state
   const [previewExhausted, setPreviewExhausted] = useState(false);
@@ -66,11 +62,16 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
     features: string[];
   } | null>(null);
 
-  const effectiveCompleted = previewExhausted ? TOTAL_FREE_INTERVIEWS : realCompletedCount;
-  const trialCompleted = Math.min(TOTAL_FREE_INTERVIEWS, effectiveCompleted);
-  const trialRemaining = Math.max(0, TOTAL_FREE_INTERVIEWS - effectiveCompleted);
+  // Authoritative additive credit and trial balance
+  const creditBalance = getUserCreditBalance(userDoc, interviews.length);
+
+  const TOTAL_FREE_INTERVIEWS = creditBalance.totalFreeAllowance;
+  const trialCompleted = previewExhausted ? TOTAL_FREE_INTERVIEWS : creditBalance.freeTrialUsed;
+  const trialRemaining = previewExhausted ? 0 : creditBalance.freeTrialRemaining;
+  const purchasedCredits = creditBalance.purchasedCredits;
+  const totalAvailable = previewExhausted ? purchasedCredits : creditBalance.totalAvailable;
   const trialProgressPercent = Math.min(100, Math.round((trialCompleted / TOTAL_FREE_INTERVIEWS) * 100));
-  const isTrialExhausted = effectiveCompleted >= TOTAL_FREE_INTERVIEWS;
+  const isTrialExhausted = previewExhausted || (creditBalance.isTrialExhausted && purchasedCredits === 0);
 
   useEffect(() => {
     let isMounted = true;
@@ -87,9 +88,9 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
         }
 
         try {
-          const userDoc = await getUserDocument(uid);
-          if (userDoc && isMounted && typeof userDoc.purchasedInterviewsCount === 'number') {
-            setPurchasedCredits(userDoc.purchasedInterviewsCount);
+          const docData = await getUserDocument(uid);
+          if (docData && isMounted) {
+            setUserDoc(docData);
           }
         } catch (userDocErr) {
           console.warn("Notice: could not load user profile document in OverviewTab:", userDocErr);
@@ -120,8 +121,14 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
       onSuccess: (result) => {
         setIsCheckingOut(false);
         setSelectedPlanModal(null);
-        setPurchasedCredits((prev) => prev + (result.creditsGranted || 1));
         setPaymentReceipt(result);
+        // Refresh authoritative Firestore user document and balance immediately
+        const uid = auth.currentUser?.uid;
+        if (uid) {
+          getUserDocument(uid).then(d => {
+            if (d) setUserDoc(d);
+          }).catch(console.warn);
+        }
       },
       onError: (errMsg) => {
         setIsCheckingOut(false);
@@ -256,7 +263,11 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
               </div>
 
               <div className="flex items-center justify-between text-[11px] text-zinc-500">
-                <span>Trial Progress: {trialProgressPercent}%</span>
+                <span>
+                  {purchasedCredits > 0 
+                    ? `Total Available: ${totalAvailable} (${trialRemaining} Free + ${purchasedCredits} Paid)`
+                    : `Trial Progress: ${trialProgressPercent}%`}
+                </span>
                 <span>Next: Pay-per-interview (₹15 Standard / ₹29 Advanced)</span>
               </div>
             </div>

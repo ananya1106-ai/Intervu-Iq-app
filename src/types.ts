@@ -10,6 +10,7 @@ export type PageType =
   | 'speech-coach'
   | 'performance'
   | 'roadmap'
+  | 'pricing'
   | 'profile'
   | 'settings'
   | 'dsa-recommendations'
